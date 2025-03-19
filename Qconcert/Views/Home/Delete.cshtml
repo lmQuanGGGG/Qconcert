@@ -1,0 +1,65 @@
+﻿@model Qconcert.Models.Event
+
+<h2>Xóa sự kiện</h2>
+
+<h4>Bạn có chắc chắn muốn xóa sự kiện này?</h4>
+<hr />
+<div>
+    <h4>Sự kiện</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Tên sự kiện
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Name
+        </dd>
+        <dt class="col-sm-2">
+            Mô tả
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Description
+        </dd>
+        <dt class="col-sm-2">
+            Ngày tổ chức
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Date.ToString("dd/MM/yyyy")
+        </dd>
+        <dt class="col-sm-2">
+            Giá
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Price VNĐ
+        </dd>
+        <dt class="col-sm-2">
+            Địa chỉ
+        </dt>
+        <dd class="col-sm-10">
+            @Model.AddressDetail, @Model.Ward, @Model.District, @Model.Province
+        </dd>
+        <dt class="col-sm-2">
+            Sức chứa
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Capacity
+        </dd>
+        <dt class="col-sm-2">
+            Ảnh 16:9
+        </dt>
+        <dd class="col-sm-10">
+            <img src="@Model.Image16x9" style="width: 100%; height: auto; aspect-ratio: 16 / 9;" />
+        </dd>
+        <dt class="col-sm-2">
+            Ảnh 9:16
+        </dt>
+        <dd class="col-sm-10">
+            <img src="@Model.Image9x16" style="width: 100%; height: auto; aspect-ratio: 9 / 16;" />
+        </dd>
+    </dl>
+</div>
+<form asp-action="Delete">
+    <input type="hidden" asp-for="Id" />
+    <input type="submit" value="Xóa" class="btn btn-danger" /> |
+    <a asp-action="Index" class="btn btn-secondary">Trở về danh sách</a>
+</form>

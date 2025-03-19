@@ -1,0 +1,137 @@
+﻿@model Qconcert.Models.Event
+
+<h2>Chỉnh sửa sự kiện</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<h4>Sự kiện</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EventInfo" class="control-label"></label>
+                <textarea asp-for="EventInfo" class="form-control"></textarea>
+                <span asp-validation-for="EventInfo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Date" class="control-label"></label>
+                <input asp-for="Date" class="form-control" type="datetime-local" />
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Price" class="control-label"></label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Capacity" class="control-label"></label>
+                <input asp-for="Capacity" class="form-control" />
+                <span asp-validation-for="Capacity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Province" class="control-label"></label>
+                <input asp-for="Province" class="form-control" />
+                <span asp-validation-for="Province" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="District" class="control-label"></label>
+                <input asp-for="District" class="form-control" />
+                <span asp-validation-for="District" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Ward" class="control-label"></label>
+                <input asp-for="Ward" class="form-control" />
+                <span asp-validation-for="Ward" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AddressDetail" class="control-label"></label>
+                <input asp-for="AddressDetail" class="form-control" />
+                <span asp-validation-for="AddressDetail" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Image16x9" class="control-label">Ảnh 16:9</label>
+                <input type="file" name="Image16x9" class="form-control" />
+                <span asp-validation-for="Image16x9" class="text-danger"></span>
+                @if (Model.Image16x9 != null)
+                {
+                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(Model.Image16x9)" style="width: 100%; height: auto; aspect-ratio: 16 / 9;" />
+                }
+            </div>
+            <div class="form-group">
+                <label for="Image9x16" class="control-label">Ảnh 9:16</label>
+                <input type="file" name="Image9x16" class="form-control" />
+                <span asp-validation-for="Image9x16" class="text-danger"></span>
+                @if (Model.Image9x16 != null)
+                {
+                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(Model.Image9x16)" style="width: 100%; height: auto; aspect-ratio: 9 / 16;" />
+                }
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    Thông tin ban tổ chức
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label asp-for="OrganizerName" class="control-label"></label>
+                        <input asp-for="OrganizerName" class="form-control" />
+                        <span asp-validation-for="OrganizerName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="OrganizerInfo" class="control-label"></label>
+                        <textarea asp-for="OrganizerInfo" class="form-control"></textarea>
+                        <span asp-validation-for="OrganizerInfo" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="OrganizerLogo" class="control-label">Logo ban tổ chức</label>
+                        <input type="file" name="OrganizerLogo" class="form-control" />
+                        <span asp-validation-for="OrganizerLogo" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Lưu" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index" class="btn btn-secondary">Trở về danh sách</a>
+</div>
+
+@section Scripts {
+    <script>
+        CKEDITOR.replace('EventInfo');
+    </script>
+}

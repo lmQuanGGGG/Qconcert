@@ -1,0 +1,37 @@
+﻿@model Qconcert.Models.PaymentInfo
+
+@{
+    ViewData["Title"] = "Nhập thông tin tài khoản";
+}
+
+<h3>Nhập thông tin tài khoản</h3>
+
+<form asp-action="CreatePaymentInfo" method="post">
+    <input type="hidden" asp-for="EventId" />
+    <div class="form-group">
+        <label for="accountHolder">Chủ tài khoản</label>
+        <input type="text" id="accountHolder" name="AccountHolder" class="form-control" asp-for="AccountHolder" />
+        <span asp-validation-for="AccountHolder" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="accountNumber">Số tài khoản</label>
+        <input type="text" id="accountNumber" name="AccountNumber" class="form-control" asp-for="AccountNumber" />
+        <span asp-validation-for="AccountNumber" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="bankName">Tên ngân hàng</label>
+        <input type="text" id="bankName" name="BankName" class="form-control" asp-for="BankName" />
+        <span asp-validation-for="BankName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="branch">Chi nhánh</label>
+        <input type="text" id="branch" name="Branch" class="form-control" asp-for="Branch" />
+        <span asp-validation-for="Branch" class="text-danger"></span>
+    </div>
+    <input type="hidden" asp-for="EventId" />
+    <button type="submit" class="btn btn-primary">Lưu</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

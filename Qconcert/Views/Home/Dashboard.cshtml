@@ -1,0 +1,71 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Thanh tìm kiếm -->
+        <div class="col-12 mb-3">
+            <form method="get" action="/Home/Search">
+                <div class="input-group">
+                    <input type="text" name="query" class="form-control" placeholder="Tìm kiếm sự kiện..." />
+                    <button class="btn btn-primary" type="submit">
+                        <span class="material-icons">search</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Danh sách sự kiện -->
+        <div class="col-12">
+            <h4 class="mb-4">Danh sách sự kiện của bạn</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Ảnh</th>
+                            <th>Tên sự kiện</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày giờ</th>
+                            <th>Quản lý</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var eventItem in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <!-- Bọc ảnh trong thẻ <a> để dẫn đến trang chi tiết -->
+                                    <a href="/Home/Details/@eventItem.Id">
+                                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(eventItem.Image16x9)" alt="@eventItem.Name" class="img-fluid" style="width: 100px;" />
+                                    </a>
+                                </td>
+                                <td>@eventItem.Name</td>
+                                <td>@eventItem.Status</td>
+                                <td>@eventItem.Date.ToString("dd/MM/yyyy HH:mm")</td>
+                                @if (User.Identity.IsAuthenticated) // Kiểm tra xem người dùng đã đăng nhập chưa
+                                {
+                                    <td>
+                                        <a href="/Home/Edit/@eventItem.Id" class="btn btn-warning btn-sm">Chỉnh sửa</a>
+                                        <a href="/Home/Delete/@eventItem.Id" class="btn btn-danger btn-sm">Xóa</a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Phần quảng cáo -->
+        <div class="col-12 mt-4">
+            <div class="alert alert-info">
+                <h5>Quản lý sự kiện dễ dàng hơn với ứng dụng Ticketbox Event Manager</h5>
+                <p>Tải ứng dụng trên điện thoại để quản lý sự kiện mọi lúc, mọi nơi.</p>
+            </div>
+        </div>
+    </div>
+</div>

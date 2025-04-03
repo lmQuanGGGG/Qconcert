@@ -1,18 +1,16 @@
-﻿@model Qconcert.Models.Category
+﻿@{
+    Layout = "_Layout";
+}
+@model Qconcert.Models.Category
 
-<h2>Tạo mới danh mục</h2>
-
-<form asp-action="Create">
+<form asp-area="Admin" asp-controller="Category" asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
     <div class="form-group">
         <label asp-for="Name" class="control-label"></label>
         <input asp-for="Name" class="form-control" />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <input type="submit" value="Lưu" class="btn btn-primary" />
+        <input type="submit" value="Create" class="btn btn-primary" />
     </div>
 </form>
-
-<div>
-    <a asp-action="Index" class="btn btn-secondary">Trở về danh sách</a>
-</div>

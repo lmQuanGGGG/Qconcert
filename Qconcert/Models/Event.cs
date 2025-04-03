@@ -5,6 +5,10 @@ namespace Qconcert.Models;
 
 public partial class Event
 {
+    public Event()
+    {
+        Tickets = new HashSet<Ticket>();
+    }
     public int Id { get; set; }
 
     public string Name { get; set; } = null!;
@@ -17,7 +21,7 @@ public partial class Event
 
     public int? CategoryId { get; set; }
 
-    public decimal Price { get; set; }
+
 
     public int Capacity { get; set; }
 
@@ -40,12 +44,11 @@ public partial class Event
     public string? OrganizerInfo { get; set; }
 
     public byte[]? OrganizerLogo { get; set; }
+    public string CreatedBy { get; set; } = null!; // ID của người tạo sự kiện
 
-    public virtual ICollection<Advertisement> Advertisements { get; set; } = new List<Advertisement>();
+    public bool IsApproved { get; set; } = false; // Trạng thái duyệt sự kiện
 
     public virtual Category? Category { get; set; }
 
-    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-
-    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+    public virtual ICollection<Ticket> Tickets { get; set; }
 }

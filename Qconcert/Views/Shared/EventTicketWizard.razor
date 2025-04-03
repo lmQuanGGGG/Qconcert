@@ -1,0 +1,88 @@
+﻿@page "/event-ticket-wizard"
+@using Microsoft.AspNetCore.Components.Forms
+@using Qconcert.Models
+@inject NavigationManager Navigation
+@inject TicketBoxDb1Context DbContext
+
+<h3>Event Ticket Wizard</h3>
+
+<EditForm Model="@wizardModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @if (currentStep == 1)
+    {
+        <div>
+            <h4>Bước 1: Tạo Sự Kiện</h4>
+            <InputText id="eventName" @bind-Value="wizardModel.Event.Name" placeholder="Tên Sự Kiện" />
+            <InputTextArea id="eventDescription" @bind-Value="wizardModel.Event.Description" placeholder="Mô Tả Sự Kiện" />
+            <InputDate id="eventDate" @bind-Value="wizardModel.Event.Date" />
+            <InputText id="eventLocation" @bind-Value="wizardModel.Event.AddressDetail" placeholder="Địa Điểm" />
+            <button type="button" @onclick="NextStep">Tiếp</button>
+        </div>
+    }
+    else if (currentStep == 2)
+    {
+        <div>
+            <h4>Bước 2: Tạo Vé</h4>
+            <InputNumber id="ticketPrice" @bind-Value="wizardModel.Ticket.Price" placeholder="Giá Vé" />
+            <InputNumber id="ticketQuantity" @bind-Value="wizardModel.Ticket.SoLuongGhe" placeholder="Số Lượng Vé" />
+            <InputDate id="ticketStartDate" @bind-Value="wizardModel.Ticket.ThoiGianBatDauBanVe" />
+            <InputDate id="ticketEndDate" @bind-Value="wizardModel.Ticket.ThoiGianKetThucBanVe" />
+            <button type="button" @onclick="PreviousStep">Quay Lại</button>
+            <button type="button" @onclick="NextStep">Tiếp</button>
+        </div>
+    }
+    else if (currentStep == 3)
+    {
+        <div>
+            <h4>Bước 3: Thêm Thông Tin Thanh Toán</h4>
+            <InputText id="accountHolder" @bind-Value="wizardModel.PaymentInfo.AccountHolder" placeholder="Chủ Tài Khoản" />
+            <InputText id="accountNumber" @bind-Value="wizardModel.PaymentInfo.AccountNumber" placeholder="Số Tài Khoản" />
+            <InputText id="bankName" @bind-Value="wizardModel.PaymentInfo.BankName" placeholder="Tên Ngân Hàng" />
+            <InputText id="branch" @bind-Value="wizardModel.PaymentInfo.Branch" placeholder="Chi Nhánh" />
+            <button type="button" @onclick="PreviousStep">Quay Lại</button>
+            <button type="submit">Gửi</button>
+        </div>
+    }
+</EditForm>
+
+@code {
+    private WizardModel wizardModel = new WizardModel();
+    private int currentStep = 1;
+
+    private void NextStep()
+    {
+        currentStep++;
+    }
+
+    private void PreviousStep()
+    {
+        currentStep--;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Lưu thông tin sự kiện, vé và thanh toán
+        DbContext.Events.Add(wizardModel.Event);
+        await DbContext.SaveChangesAsync();
+
+        wizardModel.Ticket.EventId = wizardModel.Event.Id;
+        DbContext.Tickets.Add(wizardModel.Ticket);
+        await DbContext.SaveChangesAsync();
+
+        wizardModel.PaymentInfo.EventId = wizardModel.Event.Id;
+        DbContext.PaymentInfos.Add(wizardModel.PaymentInfo);
+        await DbContext.SaveChangesAsync();
+
+        // Chuyển hướng đến trang thành công hoặc hiển thị thông báo thành công
+        Navigation.NavigateTo("/success");
+    }
+
+    public class WizardModel
+    {
+        public Event Event { get; set; } = new Event();
+        public Ticket Ticket { get; set; } = new Ticket();
+        public PaymentInfo PaymentInfo { get; set; } = new PaymentInfo();
+    }
+}

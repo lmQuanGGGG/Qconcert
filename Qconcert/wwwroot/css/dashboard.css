@@ -1,0 +1,55 @@
+﻿body {
+    display: flex;
+    flex-direction: column; /* Thêm dòng này để chuyển hướng flex thành cột */
+    height: 100vh;
+    margin: 0;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #343a40;
+    color: white;
+    flex-shrink: 0;
+    height: 100vh; /* Chiều cao bằng toàn bộ màn hình */
+    position: fixed; /* Cố định sidebar bên trái */
+    top: 0;
+    left: 0;
+    overflow-y: auto; /* Thêm cuộn dọc nếu nội dung vượt quá chiều cao */
+}
+
+    .sidebar a {
+        color: white;
+        text-decoration: none;
+        padding: 10px 15px;
+        display: block;
+    }
+
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+
+.content {
+    margin-left: 250px; /* Đẩy nội dung sang phải để không bị che bởi sidebar */
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.navbar-toggler {
+    border: none;
+}
+
+/* Ẩn sidebar trên màn hình nhỏ */
+@media (max-width: 992px) {
+    .sidebar {
+        display: none;
+    }
+
+    .content {
+        margin-left: 0; /* Đặt lại margin cho nội dung */
+    }
+
+    .sidebar-toggle {
+        display: block; /* Hiển thị nút toggle trên màn hình nhỏ */
+    }
+}

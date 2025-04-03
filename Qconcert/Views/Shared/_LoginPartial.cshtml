@@ -1,0 +1,115 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item dropdown">
+            <a id="userDropdown" class="nav-link text-light dropdown-toggle fw-bold" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> @UserManager.GetUserName(User)
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark">
+                <li>
+                    <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                        <i class="bi bi-gear"></i> Quản lý tài khoản
+                    </a>
+                </li>
+                <li>
+                    <form id="logoutForm" class="dropdown-item m-0 p-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                        <button id="logout" type="submit" class="dropdown-item text-danger">
+                            <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <button class="btn btn-outline-light fw-bold  me-2 mt-2 mb-2 px-3" data-bs-toggle="modal" data-bs-target="#registerModal">
+                <i class="bi bi-person-plus"></i> Đăng ký
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="btn btn-outline-light fw-bold me-2c mt-2 mb-2 px-3" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+            </button>
+        </li>
+    }
+</ul>
+
+<!-- Modal Đăng nhập -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="loginModalLabel">
+                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm" method="post" asp-area="Identity" asp-page="/Account/Login">
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control input-custom" id="email" name="Input.Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-bold">Mật khẩu</label>
+                        <input type="password" class="form-control input-custom" id="password" name="Input.Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Đăng nhập</button>
+                </form>
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-between">
+                <a asp-area="Identity" asp-page="/Account/ForgotPassword" class="text-light text-decoration-none">Quên mật khẩu?</a>
+                <a asp-area="Identity" asp-page="/Account/ResendEmailConfirmation" class="text-light text-decoration-none">Gửi lại email xác nhận</a>
+            </div>
+            <div class="text-center pb-3">
+                <span>Chưa có tài khoản?</span>
+                <button class="btn btn-link text-warning" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Đăng ký ngay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Đăng ký -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="registerModalLabel">
+                    <i class="bi bi-person-plus"></i> Đăng ký tài khoản
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm" method="post" asp-area="Identity" asp-page="/Account/Register">
+                    <div class="mb-3">
+                        <label for="regEmail" class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control input-custom" id="regEmail" name="Input.Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="regPassword" class="form-label fw-bold">Mật khẩu</label>
+                        <input type="password" class="form-control input-custom" id="regPassword" name="Input.Password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="regConfirmPassword" class="form-label fw-bold">Xác nhận mật khẩu</label>
+                        <input type="password" class="form-control input-custom" id="regConfirmPassword" name="Input.ConfirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">Tạo tài khoản</button>
+                </form>
+            </div>
+            <div class="text-center pb-3">
+                <span>Đã có tài khoản?</span>
+                <button class="btn btn-link text-warning" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Đăng nhập</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

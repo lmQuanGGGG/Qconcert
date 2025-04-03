@@ -1,23 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace Qconcert.Models;
-
-public partial class Order
+namespace Qconcert.Models
 {
-    public int Id { get; set; }
+    public class Order
+    {
+        [Key]
+        public int Id { get; set; }
 
-    public int UserId { get; set; }
+        [Required]
+        public string UserId { get; set; }
+        [Required]
+        public string EventId { get; set; }
+        [Required]
+        public DateTime OrderDate { get; set; }
 
-    public decimal TotalAmount { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
 
-    public string? Status { get; set; }
+        public decimal TotalAmount { get; set; }
+        // Trạng thái thanh toán
+        [Required]
+        public string PaymentStatus { get; set; } = "Chưa thanh toán"; // Giá trị mặc định
 
-    public DateTime? CreatedAt { get; set; }
-
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
-
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
-
-    public virtual User User { get; set; } = null!;
+        // Phương thức thanh toán
+        public string PaymentMethod { get; set; }
+        public ICollection<OrderDetail> OrderDetails { get; set; }
+    }
 }

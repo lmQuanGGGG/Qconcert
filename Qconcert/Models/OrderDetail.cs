@@ -1,25 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Qconcert.Models;
-
-public partial class OrderDetail
+namespace Qconcert.Models
 {
-    public int Id { get; set; }
+    public class OrderDetail
+    {
+        [Key]
+        public int Id { get; set; }
 
-    public int OrderId { get; set; }
+        [Required]
+        public int OrderId { get; set; }
 
-    public int TicketId { get; set; }
+        [ForeignKey("OrderId")]
+        public Order Order { get; set; }
 
-    public int Quantity { get; set; }
+        [Required]
+        public int TicketId { get; set; }
 
-    public decimal Subtotal { get; set; }
+        [ForeignKey("TicketId")]
+        public Ticket Ticket { get; set; }
 
-    public string? Qrcode { get; set; }
+        [Required]
+        public int Quantity { get; set; }
 
-    public virtual ICollection<CheckIn> CheckIns { get; set; } = new List<CheckIn>();
-
-    public virtual Order Order { get; set; } = null!;
-
-    public virtual Ticket Ticket { get; set; } = null!;
+        public decimal Price { get; set; }
+    }
 }

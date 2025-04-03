@@ -1,0 +1,35 @@
+@model Qconcert.Models.Order
+
+<div class="container mt-4">
+    <h2 class="fw-bold text-success">Xác nhận thanh toán</h2>
+    <p><strong>Sự kiện:</strong> @Model.EventId</p>
+    <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+    <p><strong>Email:</strong> @Model.Email</p>
+
+    <h4 class="fw-bold mt-4">Chi tiết vé</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Loại vé</th>
+                <th>Số lượng</th>
+                <th>Giá</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var detail in Model.OrderDetails)
+            {
+                <tr>
+                    <td>@detail.Ticket.LoaiVe</td>
+                    <td>@detail.Quantity</td>
+                    <td>@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", detail.Price)</td>
+                    <td>@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", detail.Price * detail.Quantity)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4 class="text-danger fw-bold">Tổng tiền: @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", Model.TotalAmount)</h4>
+
+    <a href="/" class="btn btn-primary">Quay về trang chủ</a>
+</div>

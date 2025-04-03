@@ -1,0 +1,157 @@
+﻿@model Qconcert.Models.Ticket
+
+<form asp-action="Edit" asp-controller="Ticket" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="EventId" class="control-label text-black">Sự kiện</label>
+        <input asp-for="EventId" class="form-control" readonly />
+        <span asp-validation-for="EventId" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="LoaiVe" class="control-label text-black">Loại vé</label>
+                <input asp-for="LoaiVe" class="form-control" />
+                <span asp-validation-for="LoaiVe" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="Price" class="control-label text-black">Giá vé</label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="SoLuongGhe" class="control-label text-black">Tổng số lượng vé</label>
+                <input asp-for="SoLuongGhe" class="form-control" />
+                <span asp-validation-for="SoLuongGhe" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="SoVeToiThieuTrongMotDonHang" class="control-label text-black">Số vé mua tối thiểu</label>
+                <input asp-for="SoVeToiThieuTrongMotDonHang" class="form-control" />
+                <span asp-validation-for="SoVeToiThieuTrongMotDonHang" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="SoVeToiDaTrongMotDonHang" class="control-label text-black">Số vé mua tối đa</label>
+                <input asp-for="SoVeToiDaTrongMotDonHang" class="form-control" />
+                <span asp-validation-for="SoVeToiDaTrongMotDonHang" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="ThoiGianBatDauBanVe" class="control-label text-black">Thời gian bắt đầu bán vé</label>
+                <input asp-for="ThoiGianBatDauBanVe" class="form-control" type="datetime-local" />
+                <span asp-validation-for="ThoiGianBatDauBanVe" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="ThoiGianKetThucBanVe" class="control-label text-black">Thời gian kết thúc bán vé</label>
+                <input asp-for="ThoiGianKetThucBanVe" class="form-control" type="datetime-local" />
+                <span asp-validation-for="ThoiGianKetThucBanVe" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="HinhAnhVe" class="control-label text-black">Hình ảnh vé</label>
+                <input asp-for="HinhAnhVe" class="form-control" type="file" />
+                <span asp-validation-for="HinhAnhVe" class="text-danger"></span>
+                <img id="previewImage" src="#" alt="Hình ảnh vé" style="display:none; width: 100%; height: auto; margin-top: 10px;" />
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ThongTinVe" class="control-label text-black">Thông tin vé</label>
+        <textarea asp-for="ThongTinVe" class="form-control"></textarea>
+        <span asp-validation-for="ThongTinVe" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+</form>
+
+@section Scripts {
+    <script>
+        document.getElementById('HinhAnhVe').addEventListener('change', function (event) {
+            var reader = new FileReader();
+            reader.onload = function () {
+                var output = document.getElementById('previewImage');
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        });
+    </script>
+    <script>
+        // Chặn nhập số âm
+        document.addEventListener("DOMContentLoaded", function () {
+            let inputs = document.querySelectorAll("input[type='number']");
+
+            inputs.forEach(input => {
+                input.addEventListener("input", function () {
+                    if (this.value !== "" && this.value < 1) {
+                        this.value = 1;
+                    }
+                });
+            });
+        });
+
+
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let priceInput = document.querySelector("input[name='Price']");
+
+            function formatPriceInput() {
+                let value = priceInput.value.replace(/\D/g, ""); // Loại bỏ ký tự không phải số
+                if (value) {
+                    value = parseInt(value);
+                    if (value < 1) value = 1; // Giá tối thiểu là 1
+                    priceInput.value = value.toLocaleString("vi-VN"); // Format giá theo VNĐ
+                } else {
+                    priceInput.value = "1";
+                }
+            }
+
+            if (priceInput) {
+                // Format giá khi nhập
+                priceInput.addEventListener("input", formatPriceInput);
+
+                // Khi mất focus, đảm bảo không để giá trị rỗng
+                priceInput.addEventListener("blur", function () {
+                    if (!this.value || parseInt(this.value.replace(/\D/g, "")) < 1) {
+                        this.value = "1";
+                    }
+                });
+
+                // Định dạng giá ngay khi modal mở
+                $('#editTicketModal').on('shown.bs.modal', function () {
+                    formatPriceInput();
+                });
+
+                // Trước khi submit, chuyển về số nguyên (bỏ dấu chấm)
+                document.querySelector("form").addEventListener("submit", function () {
+                    priceInput.value = priceInput.value.replace(/\D/g, "");
+                });
+            }
+        });
+    </script>
+
+}

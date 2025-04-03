@@ -1,0 +1,152 @@
+﻿@model Qconcert.Models.Event
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Cột bên trái: Danh sách loại vé -->
+        <div class="col-lg-8">
+            <a asp-controller="Home" asp-action="Details" asp-route-id="@Model.Id" class="text-success mb-3 d-block">
+                <i class="bi bi-arrow-left"></i> Trở về
+            </a>
+
+            <h4 class="fw-bold text-success">Chọn vé</h4>
+            @foreach (var ticket in Model.Tickets)
+            {
+                <div class="card-3 mb-3 ">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-success">@ticket.LoaiVe</h5>
+                        <p class="text-danger fw-bold">@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", ticket.Price)</p>
+                        <p>@Html.Raw(ticket.ThongTinVe)</p>
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-secondary btn-sm me-2" onclick="updateQuantity(@ticket.Id, -1)">-</button>
+                            <input type="text" id="quantity-@ticket.Id" class="form-control text-center" value="0" style="width: 50px;" readonly />
+                            <button class="btn btn-outline-success btn-sm ms-2" onclick="updateQuantity(@ticket.Id, 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Cột bên phải: Thông tin sự kiện và giỏ hàng -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header text-center">
+                    <h5 class="fw-bold">[@Model.Province] @Model.Name</h5>
+                </div>
+                <div class="card-body">
+                    <p><i class="bi bi-calendar-event me-2 text-success"></i>@Model.Date.ToString("HH:mm - dd/MM/yyyy")</p>
+                    <p><i class="bi bi-geo-alt me-2 text-success"></i>@Model.AddressDetail, @Model.Ward, @Model.District, @Model.Province</p>
+                    <h6 class="fw-bold">Giá vé</h6>
+                    <ul class="list-unstyled">
+                        @foreach (var ticket in Model.Tickets)
+                        {
+                            <li>@Model.Name - @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", ticket.Price)</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header text-center">
+                    <h5 class="fw-bold">Giỏ hàng</h5>
+                </div>
+                <div class="card-body">
+                    <ul id="cart-list" class="list-unstyled">
+                        <!-- Danh sách vé sẽ được cập nhật bằng JavaScript -->
+                    </ul>
+                    <p id="total-price" class="fw-bold text-danger">Tổng: 0₫</p>
+                </div>
+            </div>
+            <form asp-action="Checkout" asp-controller="Cart" method="post">
+                <input type="hidden" name="userId" value="@User.Identity.Name" />
+                <input type="hidden" name="email" value="@User.Identity.Name" /> <!-- Hoặc lấy email từ người dùng -->
+                <button type="submit" class="btn btn-success w-100 mt-3">Thanh toán</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="col-lg-4">
+   
+</div>
+
+<script>
+    function updateQuantity(ticketId, change) {
+        const quantityInput = document.getElementById(`quantity-${ticketId}`);
+        let currentQuantity = parseInt(quantityInput.value);
+        let newQuantity = Math.max(0, currentQuantity + change);
+
+        if (newQuantity === 0) {
+            removeFromCart(ticketId); // Nếu số lượng về 0 thì gọi API xóa vé
+        } else {
+            updateCart(ticketId, newQuantity); // Cập nhật số lượng mới
+        }
+
+        quantityInput.value = newQuantity;
+    }
+
+    function updateCart(ticketId, quantity) {
+        fetch('/Cart/AddToCart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({ ticketId, quantity })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Lỗi ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(cart => {
+            console.log("Giỏ hàng cập nhật:", cart);
+            updateCartUI(cart);
+        })
+        .catch(error => {
+            console.error("Lỗi khi cập nhật giỏ hàng:", error);
+        });
+    }
+
+    function removeFromCart(ticketId) {
+        fetch('/Cart/RemoveFromCart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({ TicketId: ticketId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message);
+            updateCartUI(data.updatedCart || []); // Nếu null thì truyền vào mảng rỗng
+        })
+        .catch(error => console.error("Lỗi khi xóa vé:", error));
+    }
+
+    function updateCartUI(cart) {
+        const cartList = document.getElementById('cart-list');
+        cartList.innerHTML = ''; // Xóa nội dung cũ
+
+        let totalPrice = 0;
+
+        if (cart.length === 0) {
+            // Giỏ hàng trống => cập nhật tổng tiền về 0
+            document.getElementById('total-price').textContent = `Tổng: 0₫`;
+            return;
+        }
+
+        cart.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${item.ticketName} - ${item.quantity} x ${item.price.toLocaleString('vi-VN')}₫`;
+            cartList.appendChild(listItem);
+
+            totalPrice += item.quantity * item.price;
+        });
+
+        // Cập nhật tổng giá
+        document.getElementById('total-price').textContent = `Tổng: ${totalPrice.toLocaleString('vi-VN')}₫`;
+    }
+
+</script>

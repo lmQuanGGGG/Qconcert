@@ -1,0 +1,52 @@
+﻿@model IEnumerable<Qconcert.Models.Event>
+
+@{
+    ViewData["Title"] = "Duyệt sự kiện";
+}
+
+<h2>Duyệt sự kiện</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@if (!Model.Any())
+{
+    <p>Không có sự kiện nào đang chờ duyệt.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Tên sự kiện</th>
+                <th>Danh mục</th>
+                <th>Ngày tổ chức</th>
+                <th>Người tổ chức</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Category?.Name</td>
+                    <td>@item.Date.ToString("dd/MM/yyyy")</td>
+                    <td>@item.OrganizerName</td>
+                    <td>
+                        <form asp-area="Admin" asp-controller="AdminHome" asp-action="ApproveEvent" method="post" onsubmit="return confirm('Bạn có chắc muốn duyệt sự kiện này?');">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-success btn-sm">Duyệt</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@{
+    Layout = "_Layout";
+}

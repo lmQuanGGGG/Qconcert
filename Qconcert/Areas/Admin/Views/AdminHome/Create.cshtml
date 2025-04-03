@@ -1,0 +1,157 @@
+﻿@model Qconcert.Models.Event
+
+<h2>Tạo mới sự kiện</h2>
+
+<form asp-action="Create" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Description" class="control-label"></label>
+        <input asp-for="Description" class="form-control" />
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="EventInfo" class="control-label"></label>
+        <textarea asp-for="EventInfo" class="form-control"></textarea>
+        <span asp-validation-for="EventInfo" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Date" class="control-label"></label>
+        <input asp-for="Date" class="form-control" type="datetime-local" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CategoryId" class="control-label"></label>
+        <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+        <span asp-validation-for="CategoryId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Capacity" class="control-label"></label>
+        <input asp-for="Capacity" class="form-control" />
+        <span asp-validation-for="Capacity" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Province" class="control-label"></label>
+        <select class="form-control" id="Province"></select>
+        <input type="hidden" asp-for="Province" id="ProvinceName" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="District" class="control-label"></label>
+        <select class="form-control" id="District"></select>
+        <input type="hidden" asp-for="District" id="DistrictName" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Ward" class="control-label"></label>
+        <select class="form-control" id="Ward"></select>
+        <input type="hidden" asp-for="Ward" id="WardName" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="AddressDetail" class="control-label"></label>
+        <input asp-for="AddressDetail" class="form-control" />
+        <span asp-validation-for="AddressDetail" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-4">
+        <label for="Image16x9" class="control-label">Ảnh 16:9</label>
+        <input type="file" name="Image16x9" class="form-control" />
+        <span asp-validation-for="Image16x9" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Image9x16" class="control-label">Ảnh 9:16</label>
+        <input type="file" name="Image9x16" class="form-control" />
+        <span asp-validation-for="Image9x16" class="text-danger"></span>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            Thông tin ban tổ chức
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label asp-for="OrganizerName" class="control-label"></label>
+                <input asp-for="OrganizerName" class="form-control" />
+                <span asp-validation-for="OrganizerName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OrganizerInfo" class="control-label"></label>
+                <textarea asp-for="OrganizerInfo" class="form-control"></textarea>
+                <span asp-validation-for="OrganizerInfo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="OrganizerLogo" class="control-label">Logo ban tổ chức</label>
+                <input type="file" name="OrganizerLogo" class="form-control" />
+                <span asp-validation-for="OrganizerLogo" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Lưu" class="btn btn-primary" />
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        CKEDITOR.replace('EventInfo');
+    </script>
+}
+<script src="https://esgoo.net/scripts/jquery.js"></script>
+
+<script>
+       $(document).ready(function() {
+        // Load danh sách tỉnh/thành
+        $.getJSON('https://esgoo.net/api-tinhthanh/1/0.htm', function(data) {
+            if (data.error === 0) {
+                $.each(data.data, function(index, item) {
+                    $("#Province").append('<option value="' + item.id + '">' + item.full_name + '</option>');
+                });
+
+                $("#Province").change(function() {
+                    var provinceId = $(this).val();
+                    var provinceName = $("#Province option:selected").text();
+                    $("#ProvinceName").val(provinceName); // Gán vào input ẩn
+
+                    $.getJSON('https://esgoo.net/api-tinhthanh/2/' + provinceId + '.htm', function(data) {
+                        if (data.error === 0) {
+                            $("#District").html('<option value="">Chọn Quận/Huyện</option>');
+                            $("#Ward").html('<option value="">Chọn Phường/Xã</option>');
+
+                            $.each(data.data, function(index, item) {
+                                $("#District").append('<option value="' + item.id + '">' + item.full_name + '</option>');
+                            });
+
+                            $("#District").change(function() {
+                                var districtId = $(this).val();
+                                var districtName = $("#District option:selected").text();
+                                $("#DistrictName").val(districtName); // Gán vào input ẩn
+
+                                $.getJSON('https://esgoo.net/api-tinhthanh/3/' + districtId + '.htm', function(data) {
+                                    if (data.error === 0) {
+                                        $("#Ward").html('<option value="">Chọn Phường/Xã</option>');
+
+                                        $.each(data.data, function(index, item) {
+                                            $("#Ward").append('<option value="' + item.id + '">' + item.full_name + '</option>');
+                                        });
+
+                                        $("#Ward").change(function() {
+                                            var wardName = $("#Ward option:selected").text();
+                                            $("#WardName").val(wardName); // Gán vào input ẩn
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    });
+</script>

@@ -27,12 +27,6 @@
             @Model.Date.ToString("dd/MM/yyyy")
         </dd>
         <dt class="col-sm-2">
-            Giá
-        </dt>
-        <dd class="col-sm-10">
-            @Model.Price VNĐ
-        </dd>
-        <dt class="col-sm-2">
             Địa chỉ
         </dt>
         <dd class="col-sm-10">
@@ -44,18 +38,7 @@
         <dd class="col-sm-10">
             @Model.Capacity
         </dd>
-        <dt class="col-sm-2">
-            Ảnh 16:9
-        </dt>
-        <dd class="col-sm-10">
-            <img src="@Model.Image16x9" style="width: 100%; height: auto; aspect-ratio: 16 / 9;" />
-        </dd>
-        <dt class="col-sm-2">
-            Ảnh 9:16
-        </dt>
-        <dd class="col-sm-10">
-            <img src="@Model.Image9x16" style="width: 100%; height: auto; aspect-ratio: 9 / 16;" />
-        </dd>
+       
     </dl>
 </div>
 <form asp-action="Delete">

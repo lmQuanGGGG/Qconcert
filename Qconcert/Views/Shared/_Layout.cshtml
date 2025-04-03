@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
     <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
-
-
-
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Qconcert</title>
@@ -15,29 +12,44 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-toggleable-lg navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Qconcert</a>
+                <a class="nav-linkie" asp-area="" asp-controller="Home" asp-action="Index">Qconcert</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Loại sự kiện</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="Admin" asp-controller="AdminHome" asp-action="PendingEvents">Duyệt sự kiện</a>
+
+                            </li>
+                        }
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Create">Thêm sự kiện</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Dashboard">Quản lý sự kiện</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Category</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-success" asp-area="" asp-controller="Home" asp-action="Create">Add Event</a>
-                        </li>
+
                     </ul>
-                   
+                    <form class="d-flex search-form" asp-area="" asp-controller="Home" asp-action="Search" method="get">
+                        <input class="form-control search-input" type="search" name="query" placeholder="Tìm kiếm..." aria-label="Tìm">
+                        <button class="btn btn-success search-btn me-2" type="submit">Tìm</button>
+                    </form>
+
+                    
+
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
@@ -50,7 +62,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Qconcert - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Qconcert
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

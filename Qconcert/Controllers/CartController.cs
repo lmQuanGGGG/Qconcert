@@ -16,7 +16,7 @@ namespace Qconcert.Controllers
             _context = context;
         }
 
-        // Hi?n th? gi? h�ng
+
         [Authorize]
         public IActionResult Index()
         {
@@ -27,10 +27,31 @@ namespace Qconcert.Controllers
         [HttpPost]
         public IActionResult AddToCart([FromBody] CartItemDto model)
         {
-            var ticket = _context.Tickets.FirstOrDefault(t => t.Id == model.TicketId);
+            var ticket = _context.Tickets
+                .Include(t => t.Event) // Bao gồm thông tin sự kiện
+                .FirstOrDefault(t => t.Id == model.TicketId);
+
             if (ticket == null)
             {
                 return NotFound(new { message = "Vé không tồn tại" });
+            }
+
+            // Kiểm tra nếu sự kiện chưa được duyệt
+            if (!ticket.Event.IsApproved)
+            {
+                return BadRequest(new { message = "Sự kiện chưa được duyệt, không thể mua vé." });
+            }
+
+            // Kiểm tra nếu sự kiện đã hết hạn
+            if (DateTime.Now > ticket.ThoiGianKetThucBanVe)
+            {
+                return BadRequest(new { message = "Sự kiện đã hết hạn, không thể mua vé." });
+            }
+
+            // Kiểm tra nếu số lượng yêu cầu vượt quá số vé tối đa cho phép
+            if (model.Quantity > ticket.SoVeToiDaTrongMotDonHang)
+            {
+                return BadRequest(new { message = $"Bạn chỉ có thể mua tối đa {ticket.SoVeToiDaTrongMotDonHang} vé cho loại vé này." });
             }
 
             var cart = GetCart();
@@ -102,6 +123,18 @@ namespace Qconcert.Controllers
             var cart = GetCart();
             var item = cart.FirstOrDefault(c => c.Ticket.Id == request.TicketId);
 
+            var ticket = _context.Tickets.FirstOrDefault(t => t.Id == request.TicketId);
+            if (ticket == null)
+            {
+                return NotFound(new { message = "Vé không tồn tại" });
+            }
+
+            // Kiểm tra nếu số lượng yêu cầu vượt quá số vé tối đa cho phép
+            if (request.Quantity > ticket.SoVeToiDaTrongMotDonHang)
+            {
+                return BadRequest(new { message = $"Bạn chỉ có thể mua tối đa {ticket.SoVeToiDaTrongMotDonHang} vé cho loại vé này." });
+            }
+
             if (item != null)
             {
                 if (request.Quantity == 0)
@@ -115,15 +148,11 @@ namespace Qconcert.Controllers
             }
             else if (request.Quantity > 0)
             {
-                var ticket = _context.Tickets.FirstOrDefault(t => t.Id == request.TicketId);
-                if (ticket != null)
+                cart.Add(new CartItem
                 {
-                    cart.Add(new CartItem
-                    {
-                        Ticket = ticket,
-                        Quantity = request.Quantity
-                    });
-                }
+                    Ticket = ticket,
+                    Quantity = request.Quantity
+                });
             }
 
             SaveCart(cart);
@@ -142,12 +171,35 @@ namespace Qconcert.Controllers
         [HttpPost]
         public IActionResult Checkout(string userId, string email)
         {
-            // Lấy giỏ hàng từ session
             var cart = GetCart();
 
             if (cart == null || !cart.Any())
             {
                 return BadRequest(new { message = "Giỏ hàng trống" });
+            }
+
+            foreach (var cartItem in cart)
+            {
+                var ticket = _context.Tickets
+                    .Include(t => t.Event) // Bao gồm thông tin sự kiện
+                    .FirstOrDefault(t => t.Id == cartItem.Ticket.Id);
+
+                if (ticket == null)
+                {
+                    return NotFound(new { message = $"Vé {cartItem.Ticket.LoaiVe} không tồn tại." });
+                }
+
+                // Kiểm tra nếu sự kiện chưa được duyệt
+                if (!ticket.Event.IsApproved)
+                {
+                    return BadRequest(new { message = $"Sự kiện {ticket.Event.Name} chưa được duyệt, không thể mua vé." });
+                }
+
+                // Kiểm tra nếu số lượng trong giỏ hàng vượt quá số vé tối đa cho phép
+                if (cartItem.Quantity > ticket.SoVeToiDaTrongMotDonHang)
+                {
+                    return BadRequest(new { message = $"Bạn chỉ có thể mua tối đa {ticket.SoVeToiDaTrongMotDonHang} vé cho loại vé {ticket.LoaiVe}." });
+                }
             }
 
             // Lấy thông tin sự kiện từ vé đầu tiên trong giỏ hàng
@@ -170,8 +222,12 @@ namespace Qconcert.Controllers
                 OrderDate = DateTime.Now,
                 Email = email,
                 TotalAmount = totalAmount,
-                PaymentMethod = "Thanh toán momo", // Gán giá trị mặc định cho phương thức thanh toán
-                PaymentStatus = "Chưa thanh toán" // Gán giá trị mặc định cho trạng thái thanh toán
+                PaymentMethod = "Thanh toán momo",
+                PaymentStatus = "Chưa thanh toán",
+                TransactionId = Guid.NewGuid().ToString(),
+                PaymentDate = null,
+                BankTransferImage = "default_image_path",
+                QrCodeUrl = "default_qr_code_url"
             };
 
             _context.Orders.Add(order);
@@ -185,7 +241,9 @@ namespace Qconcert.Controllers
                     OrderId = order.Id,
                     TicketId = cartItem.Ticket.Id,
                     Quantity = cartItem.Quantity,
-                    Price = cartItem.Ticket.Price
+                    Price = cartItem.Ticket.Price,
+                    QrCodeUrl = "default_qr_code_url",
+                    QrCodeToken = "default_qrcodetoken"
                 };
 
                 _context.OrderDetails.Add(orderDetail);

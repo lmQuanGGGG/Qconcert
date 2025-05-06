@@ -51,4 +51,6 @@ public partial class Event
     public virtual Category? Category { get; set; }
 
     public virtual ICollection<Ticket> Tickets { get; set; }
+
+    public ICollection<PromotionPackage> PromotionPackages { get; set; } // Liên kết với gói khuyến mãi
 }

@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Thanh toán thành công";
+    var promotionPackage = ViewBag.PromotionPackage as Qconcert.Models.PromotionPackage; // Lấy gói khuyến mãi từ ViewBag
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card text-center">
+                <div class="card-header bg-success text-white">
+                    <h3>Thanh toán thành công!</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Cảm ơn bạn đã thanh toán gói khuyến mãi.</p>
+                    <p>Gói khuyến mãi của bạn đã được kích hoạt thành công.</p>
+                    @if (promotionPackage != null && promotionPackage.IsInQueue)
+                    {
+                        <p class="text-warning">
+                            Gói khuyến mãi của bạn đang chờ hiển thị. Số ngày sẽ được bù:
+                            @(DateTime.UtcNow - promotionPackage.RequestedStartDate).Days ngày.
+                        </p>
+                    }
+                    else if (promotionPackage != null && promotionPackage.Status == PromotionStatus.Approved)
+                    {
+                        <p class="text-success">
+                            Gói khuyến mãi của bạn đang hiển thị. Số ngày hiển thị: @promotionPackage.DurationInDays ngày.
+                        </p>
+                    }
+                    <p>Chúng tôi sẽ gửi email xác nhận đến địa chỉ email của bạn.</p>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary mt-3">Quay lại trang chủ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

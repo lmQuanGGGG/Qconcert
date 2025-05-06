@@ -93,9 +93,17 @@ namespace Qconcert.Areas.Identity.Pages.Account
                     _logger.LogInformation("User logged in.");
 
                     var user = await _userManager.FindByEmailAsync(Input.Email);
+
+                    // Kiểm tra vai trò "Admin"
                     if (await _userManager.IsInRoleAsync(user, "Admin"))
                     {
                         return LocalRedirect(Url.Content("~/Admin/AdminHome/Index"));
+                    }
+
+                    // Kiểm tra vai trò "employee" và điều hướng
+                    if (await _userManager.IsInRoleAsync(user, "employee"))
+                    {
+                        return LocalRedirect(Url.Content("~/Employee/Scan/ScanQrCode"));
                     }
 
                     return LocalRedirect(returnUrl);
@@ -118,6 +126,7 @@ namespace Qconcert.Areas.Identity.Pages.Account
 
             return Page();
         }
+
 
 
         public async Task<IActionResult> OnPostResendConfirmationEmailAsync(string email, string StatusMessage)

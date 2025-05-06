@@ -1,0 +1,45 @@
+﻿@model Qconcert.Models.Event
+
+<h2>Đăng ký PR cho sự kiện: @Model.Name</h2>
+<p>Ngày diễn ra: @Model.Date.ToString("dd/MM/yyyy HH:mm")</p>
+
+<!-- Hiển thị lỗi chung -->
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<form asp-action="Register" asp-controller="Promotion" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="eventId" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label for="type" class="form-label">Loại gói:</label>
+        <select name="type" class="form-select" id="type" required>
+            <option value="">-- Chọn loại --</option>
+            <option value="Normal">Thường (ảnh JPG/PNG tỉ lệ 3:4)</option>
+            <option value="VIP">VIP (video MP4 tỉ lệ 16:9 &lt; 1 phút)</option>
+        </select>
+        @Html.ValidationMessage("type", "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        <label for="requestedStartDate" class="form-label">Ngày bắt đầu mong muốn:</label>
+        <input type="date" name="requestedStartDate" id="requestedStartDate" class="form-control" required />
+        @Html.ValidationMessage("requestedStartDate", "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        <label for="durationInDays" class="form-label">Thời gian hiển thị (ngày):</label>
+        <input type="number" name="durationInDays" id="durationInDays" class="form-control" min="1" max="30" required />
+        @Html.ValidationMessage("durationInDays", "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        <label for="mediaFile" class="form-label">Upload media:</label>
+        <input type="file" name="mediaFile" id="mediaFile" class="form-control" accept=".jpg,.jpeg,.png,.mp4" required />
+        @Html.ValidationMessage("mediaFile", "", new { @class = "text-danger" })
+        <small class="form-text text-muted">
+            - Gói VIP: Chỉ chấp nhận video .mp4 (tối đa 1 phút).<br />
+            - Gói Thường: Chỉ chấp nhận ảnh .jpg hoặc .png.
+        </small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Thanh toán &amp; Đăng ký</button>
+</form>

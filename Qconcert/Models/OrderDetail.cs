@@ -23,6 +23,12 @@ namespace Qconcert.Models
         [Required]
         public int Quantity { get; set; }
 
+        public string QrCodeUrl { get; set; }
+
+        public bool IsUsed { get; set; }
+
+        public string QrCodeToken { get; set; }
+
         public decimal Price { get; set; }
     }
 }

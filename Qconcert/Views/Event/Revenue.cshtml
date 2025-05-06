@@ -1,0 +1,208 @@
+@{
+    ViewData["Title"] = "Thống kê doanh thu";
+}
+
+<h2>Thống kê doanh thu theo sự kiện</h2>
+
+<div class="mb-3">
+    <label for="eventSelect" class="form-label">Chọn sự kiện:</label>
+    <select id="eventSelect" class="form-select">
+        <option value="">Tất cả sự kiện</option>
+        <!-- Các sự kiện sẽ được thêm động từ API -->
+    </select>
+</div>
+
+<div class="mb-3">
+    <label for="timeRangeSelect" class="form-label">Chọn khoảng thời gian:</label>
+    <select id="timeRangeSelect" class="form-select">
+        <option value="30days">30 ngày qua</option>
+        <option value="24hours">24 giờ qua</option>
+        <option value="1year">1 năm qua</option>
+    </select>
+</div>
+
+<canvas id="revenueChart"></canvas>
+
+
+<h2 class="mt-5">Vé đã bán</h2>
+<div class="table-responsive">
+    <table class="table table-dark table-bordered">
+        <thead>
+            <tr>
+                <th>Loại Vé</th>
+                <th>Giá bán</th>
+                <th>Đã bán</th>
+                <th>Tỉ lệ bán</th>
+            </tr>
+        </thead>
+        <tbody id="ticketsSoldTableBody">
+            <tr>
+                <td colspan="4" class="text-center">Đang tải...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const eventSelect = document.getElementById("eventSelect");
+        const timeRangeSelect = document.getElementById("timeRangeSelect");
+        const chartCanvas = document.getElementById("revenueChart");
+        let chart;
+
+        // Load danh sách sự kiện
+        function loadEvents() {
+            fetch('/api/statistics/api/events')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(event => {
+                        const option = document.createElement('option');
+                        option.value = event.id;
+                        option.textContent = event.name;
+                        eventSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading events:', error));
+        }
+
+        // Load biểu đồ doanh thu
+        function loadRevenue() {
+            const eventId = eventSelect.value;
+            const timeRange = timeRangeSelect.value;
+
+            let url = `/api/statistics/revenue-by-event?timeRange=${timeRange}`;
+            if (eventId) {
+                url += `&eventId=${eventId}`;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(item => item.time);
+                    const revenues = data.map(item => item.totalRevenue);
+                    const ticketsSold = data.map(item => item.ticketsSold);
+
+                    if (chart) {
+                        chart.destroy();
+                    }
+
+                    const ctx = chartCanvas.getContext('2d');
+                    chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Doanh thu (VNĐ)',
+                                    data: revenues,
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'Số vé đã bán',
+                                    data: ticketsSold,
+                                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                    borderColor: 'rgba(255, 159, 64, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function (value) {
+                                            return value.toLocaleString('vi-VN');
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            if (context.dataset.label === 'Doanh thu (VNĐ)') {
+                                                return context.raw.toLocaleString('vi-VN') + ' VNĐ';
+                                            } else {
+                                                return context.raw.toLocaleString('vi-VN') + ' vé';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading revenue:', error));
+        }
+
+        // Load bảng vé đã bán
+        function loadTicketsSold() {
+            const eventId = eventSelect.value;
+            const tbody = document.getElementById('ticketsSoldTableBody');
+            tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Đang tải...</td></tr>";
+
+            if (!eventId) {
+                tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Vui lòng chọn sự kiện.</td></tr>";
+                return;
+            }
+
+            fetch(`/api/statistics/tickets-sold-by-event?eventId=${eventId}`)
+                .then(response => response.json())
+                .then(data => {
+                    tbody.innerHTML = "";
+
+                    if (data.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Không có dữ liệu.</td></tr>";
+                        return;
+                    }
+
+                    data.forEach(ticket => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+        <td>${ticket.ticketType}</td>
+        <td>${ticket.price.toLocaleString('vi-VN')}đ</td>
+        <td><b>${ticket.sold} / ${ticket.total}</b></td>
+        <td>
+            <div class="d-flex align-items-center" style="gap: 10px;">
+                <div class="flex-grow-1">
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-warning text-white"
+                             role="progressbar"
+                             style="width: ${ticket.soldPercentage}%;"
+                             aria-valuenow="${ticket.soldPercentage}"
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                <div style="min-width: 40px;" class="text-end fw-bold text-white">
+                    ${Math.round(ticket.soldPercentage)}%
+                </div>
+            </div>
+        </td>
+    `;
+
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading tickets sold:', error);
+                    tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Lỗi tải dữ liệu.</td></tr>";
+                });
+        }
+
+        // Khi thay đổi sự kiện hoặc khoảng thời gian
+        eventSelect.addEventListener("change", function () {
+            loadRevenue();
+            loadTicketsSold();
+        });
+        timeRangeSelect.addEventListener("change", loadRevenue);
+
+        // Tải dữ liệu ban đầu
+        loadEvents();
+        loadRevenue();
+    });
+</script>

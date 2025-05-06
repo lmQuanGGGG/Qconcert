@@ -17,6 +17,7 @@ public partial class TicketBoxDb1Context : IdentityDbContext
         : base(options)
     {
     }
+    public DbSet<PromotionPackage> PromotionPackages { get; set; }
 
     public virtual DbSet<Category> Categories { get; set; }
 
@@ -25,6 +26,7 @@ public partial class TicketBoxDb1Context : IdentityDbContext
     public DbSet<PaymentInfo> PaymentInfos { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)

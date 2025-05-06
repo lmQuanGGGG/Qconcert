@@ -9,6 +9,7 @@ using Qconcert.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Net.Sockets;
+using Qconcert.ViewModels;
 
 namespace Qconcert.Controllers
 {
@@ -25,26 +26,250 @@ namespace Qconcert.Controllers
             _ticketService = ticketService;
         }
 
-        public async Task<IActionResult> Search(string query)
+        public async Task<IActionResult> Search(string query, string category)
         {
-            var events = await _context.Events
-                                       .Include(e => e.Category)
-                                       .Where(e => (e.Name.Contains(query) || e.Description.Contains(query)) && e.IsApproved)
-                                       .ToListAsync();
-            return View(events);
+            // Lấy danh sách thể loại cho ViewBag
+            var categories = await _context.Categories.ToListAsync();
+            ViewBag.Categories = categories;
+
+            // Lấy danh sách sự kiện kèm Category và Tickets
+            var events = _context.Events
+                .Include(e => e.Category)
+                .Include(e => e.Tickets)
+                .Where(e => e.IsApproved)
+                .AsQueryable();
+
+            // Nếu có từ khóa tìm kiếm
+            if (!string.IsNullOrEmpty(query))
+            {
+                events = events.Where(e =>
+                    (e.Name != null && e.Name.Contains(query)) ||
+                    (e.Description != null && e.Description.Contains(query)) ||
+                    (e.Category != null && e.Category.Name.Contains(query)));
+            }
+
+            // Nếu có lọc theo thể loại
+            if (!string.IsNullOrEmpty(category))
+            {
+                events = events.Where(e => e.Category.Name == category);
+            }
+
+            var eventList = await events.ToListAsync();
+
+            // Tính giá vé thấp nhất
+            foreach (var @event in eventList)
+            {
+                var lowestPrice = (@event.Tickets != null && @event.Tickets.Any())
+                    ? @event.Tickets.Min(t => t.Price)
+                    : 0;
+
+                ViewData[$"LowestPrice_{@event.Id}"] = lowestPrice;
+            }
+
+            return View(eventList);
         }
 
 
-        public async Task<IActionResult> Index()
+
+
+        /*public async Task<IActionResult> Index()
         {
             var events = await _context.Events
                                        .Include(e => e.Category)
+                                       .Include(e => e.Tickets)
                                        .Where(e => e.IsApproved) // Lọc chỉ hiển thị sự kiện đã duyệt
                                        .ToListAsync();
 
+            // Tính giá vé thấp nhất cho mỗi sự kiện
+            foreach (var @event in events)
+            {
+                ViewData[$"LowestPrice_{@event.Id}"] = @event.Tickets?.Min(t => t.Price) ?? 0;
+            }
+
             var groupedEvents = events.GroupBy(e => e.Category).ToList();
             return View(groupedEvents);
+        }*/
+        /*public async Task<IActionResult> Index()
+        {
+            // Lấy danh sách gói khuyến mãi đã thanh toán
+            var promotionPackages = await _context.PromotionPackages
+                .Include(p => p.Event)
+                    .ThenInclude(e => e.Category)
+                .Include(p => p.Event.Tickets)
+                .Where(p => p.IsPaid)
+                .ToListAsync();
+
+            // Sự kiện VIP
+            var vipEvents = promotionPackages
+                .Where(p => p.Type == PromotionType.VIP)
+                .Select(p => new VipPromotionViewModel
+                {
+                    Event = p.Event,
+                    MediaPath = p.MediaPath
+                })
+                .ToList();
+
+            // Sự kiện thường
+            var regularEvents = promotionPackages
+                .Where(p => p.Type == PromotionType.Normal)
+                .Select(p => new RegularPromotionViewModel
+                {
+                    Event = p.Event,
+                    MediaPath = p.MediaPath
+                })
+                .ToList();
+
+            // Các sự kiện không có gói khuyến mãi
+            var allEvents = await _context.Events
+                .Include(e => e.Category)
+                .Include(e => e.Tickets)
+                .Where(e => e.IsApproved)
+                .ToListAsync();
+
+            var categorizedEvents = allEvents
+                .Where(e => !promotionPackages.Any(p => p.EventId == e.Id))
+                .GroupBy(e => e.Category)
+                .ToList();
+
+            // Tạo ViewModel
+            var viewModel = new HomeIndexViewModel
+            {
+                VipEvents = vipEvents,
+                RegularEvents = regularEvents,
+                CategorizedEvents = categorizedEvents
+            };
+
+            return View(viewModel);
+        }*/
+        public async Task<IActionResult> Index()
+        {
+            // Kiểm tra và kích hoạt các sự kiện VIP "chờ hiển thị"
+            await CheckAndActivatePendingPromotions();
+
+            // Lấy danh sách gói khuyến mãi đã thanh toán
+            var promotionPackages = await _context.PromotionPackages
+                .Include(p => p.Event)
+                .ThenInclude(e => e.Category)
+                .Include(p => p.Event.Tickets)
+                .Where(p => p.IsPaid) // Chỉ lấy gói đã thanh toán
+                .ToListAsync();
+
+            // Sự kiện VIP
+            var vipEvents = promotionPackages
+                .Where(p => p.Type == PromotionType.VIP && p.Status == PromotionStatus.Approved)
+                .Where(p => p.ActualStartDate.HasValue &&
+                            p.ActualStartDate.Value <= DateTime.Now &&
+                            p.ActualStartDate.Value.AddDays(p.DurationInDays) >= DateTime.Now) // Chỉ lấy gói đang hiển thị
+                .OrderBy(p => p.ActualStartDate) // Ưu tiên gói được hiển thị sớm nhất
+                .Take(4) // Giới hạn 4 sự kiện
+                .Select(p => new VipPromotionViewModel
+                {
+                    Event = p.Event,
+                    MediaPath = p.MediaPath
+                })
+                .ToList();
+
+            // Sự kiện thường
+            var regularEvents = promotionPackages
+                .Where(p => p.Type == PromotionType.Normal && p.Status == PromotionStatus.Approved)
+                .Select(p => new RegularPromotionViewModel
+                {
+                    Event = p.Event,
+                    MediaPath = p.MediaPath
+                })
+                .ToList();
+
+            // Các sự kiện không có gói khuyến mãi
+            var allEvents = await _context.Events
+                .Include(e => e.Category)
+                .Include(e => e.Tickets)
+                .Where(e => e.IsApproved) // Chỉ lấy sự kiện đã duyệt
+                .ToListAsync();
+
+            var categorizedEvents = allEvents
+                .GroupBy(e => e.Category)
+                .ToList();
+
+            // Tạo ViewModel
+            var viewModel = new HomeIndexViewModel
+            {
+                VipEvents = vipEvents,
+                RegularEvents = regularEvents,
+                CategorizedEvents = categorizedEvents
+            };
+
+            return View(viewModel);
         }
+
+        private async Task CheckAndActivatePendingPromotions()
+        {
+            // Lấy danh sách các gói VIP đang chờ hiển thị
+            var pendingPromotions = await _context.PromotionPackages
+                .Where(p => p.Type == PromotionType.VIP && p.Status == PromotionStatus.Pending && p.IsInQueue)
+                .OrderBy(p => p.CreatedAt) // Ưu tiên gói được tạo sớm nhất
+                .ToListAsync();
+
+            foreach (var promotion in pendingPromotions)
+            {
+                // Tính số lượng sự kiện VIP đang hiển thị
+                var activeVipCount = await _context.PromotionPackages
+                    .Where(p => p.Type == PromotionType.VIP && p.Status == PromotionStatus.Approved)
+                    .Where(p => p.ActualStartDate.HasValue && p.ActualStartDate.Value <= DateTime.Now)
+                    .Where(p => p.ActualStartDate.Value.AddDays(p.DurationInDays) >= DateTime.Now)
+                    .CountAsync();
+
+                // Nếu còn slot trống, kích hoạt sự kiện này
+                if (activeVipCount < 4)
+                {
+                    promotion.Status = PromotionStatus.Approved;
+                    promotion.ActualStartDate = DateTime.Now; // Bắt đầu hiển thị ngay
+                    promotion.IsInQueue = false;
+
+                    _context.PromotionPackages.Update(promotion);
+                }
+            }
+
+            // ===== NORMAL =====
+            var pendingNormalPromotions = await _context.PromotionPackages
+                .Where(p => p.Type == PromotionType.Normal && p.Status == PromotionStatus.Pending && p.IsInQueue)
+                .OrderBy(p => p.CreatedAt)
+                .ToListAsync();
+
+            foreach (var promotion in pendingNormalPromotions)
+            {
+                var activeNormalCount = await _context.PromotionPackages
+                    .Where(p => p.Type == PromotionType.Normal && p.Status == PromotionStatus.Approved)
+                    .Where(p => p.ActualStartDate.HasValue && p.ActualStartDate.Value <= DateTime.Now)
+                    .Where(p => p.ActualStartDate.Value.AddDays(p.DurationInDays) >= DateTime.Now)
+                    .CountAsync();
+
+                if (activeNormalCount < 12)
+                {
+                    promotion.Status = PromotionStatus.Approved;
+                    promotion.ActualStartDate = DateTime.Now; // Bắt đầu hiển thị ngay
+                    promotion.IsInQueue = false;
+
+                    _context.PromotionPackages.Update(promotion);
+                }
+            }
+
+            // Gọi SaveChangesAsync một lần duy nhất sau khi cập nhật tất cả các khuyến mãi
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IActionResult> Success(int promotionPackageId)
+        {
+            var promotionPackage = await _context.PromotionPackages.FindAsync(promotionPackageId);
+            if (promotionPackage == null)
+            {
+                return NotFound("Gói khuyến mãi không tồn tại.");
+            }
+
+            ViewBag.PromotionPackage = promotionPackage; // Truyền gói khuyến mãi vào ViewBag
+            return View();
+        }
+
+
 
 
         public async Task<IActionResult> Details(int? id)
@@ -60,16 +285,50 @@ namespace Qconcert.Controllers
         .Include(e => e.Tickets) // Bao gồm danh sách vé
         .FirstOrDefaultAsync(e => e.Id == id);
 
-    if (@event == null)
-    {
-        return NotFound();
-    }
+            if (@event == null)
+            {
+                return NotFound();
+            }
 
-    // Tính giá vé thấp nhất
-    ViewData["LowestPrice"] = @event.Tickets?.Min(t => t.Price) ?? 0;
+            // Tính giá vé thấp nhất
+            ViewData["LowestPrice"] = @event.Tickets?.Min(t => t.Price) ?? 0;
 
             return View(@event);
         }
+
+        public async Task<IActionResult> SearchFiltered(string category, DateTime? date, string location)
+        {
+            var events = _context.Events
+                .Include(e => e.Category)
+                .Include(e => e.Tickets)
+                .Where(e => e.IsApproved);
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                events = events.Where(e => e.Category.Name == category);
+            }
+
+            if (date.HasValue)
+            {
+                events = events.Where(e => e.Date.Date == date.Value.Date);
+            }
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                events = events.Where(e => e.Province.Contains(location));
+            }
+
+            var filteredEvents = await events.ToListAsync();
+
+            // Tính giá vé thấp nhất cho mỗi sự kiện
+            foreach (var @event in filteredEvents)
+            {
+                ViewData[$"LowestPrice_{@event.Id}"] = @event.Tickets?.Min(t => t.Price) ?? 0;
+            }
+
+            return PartialView("_EventListPartial", filteredEvents);
+        }
+
 
         [Authorize]
         public IActionResult Create()
@@ -91,7 +350,7 @@ namespace Qconcert.Controllers
             }
 
             @event.CreatedBy = userId; // Gán CreatedBy cho người tạo
-            @event.IsApproved = true; // Mặc định  được duyệt
+            @event.IsApproved = false; // Mặc định chưa được duyệt
 
             // Xử lý ảnh nếu có
             if (Image9x16 != null)
@@ -117,6 +376,24 @@ namespace Qconcert.Controllers
 
             _context.Add(@event);
             await _context.SaveChangesAsync();
+            // Tạo thông báo cho Admin
+            var userNotification = new Notification
+            {
+                UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Message = $"Người dùng vừa tạo sự kiện '{@event.Name}' và đang chờ duyệt.",
+                EventId = @event.Id
+            };
+            _context.Notifications.Add(userNotification);
+            // Tạo thông báo cho Admin
+            // Tạo thông báo cho Admin khi người dùng tạo sự kiện
+            var adminNotification = new Notification
+            {
+                Message = $"Người dùng vừa tạo sự kiện '{@event.Name}' và đang chờ duyệt.",
+                EventId = @event.Id,
+                UserId = "1"
+            };
+            _context.Notifications.Add(adminNotification);
+            await _context.SaveChangesAsync();
             // Chuyển hướng đến trang thêm vé
             return RedirectToAction("Create", "Ticket", new { eventId = @event.Id, numberOfTickets, ticketPrice, startTime, endTime, ticketType });
         }
@@ -130,7 +407,7 @@ namespace Qconcert.Controllers
             if (@event == null) return NotFound();
 
             // Kiểm tra quyền chỉnh sửa: Chỉ người tạo sự kiện mới được sửa
-            if (@event.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            if (!User.IsInRole("Admin") && @event.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 return Forbid(); // Trả về lỗi 403 nếu không có quyền
             }
@@ -150,7 +427,7 @@ namespace Qconcert.Controllers
             if (existingEvent == null) return NotFound();
 
             // Kiểm tra quyền chỉnh sửa
-            if (existingEvent.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            if (!User.IsInRole("Admin") && existingEvent.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 return Forbid();
             }
@@ -228,7 +505,7 @@ namespace Qconcert.Controllers
             if (@event == null) return NotFound();
 
             // Kiểm tra quyền chỉnh sửa: Chỉ người tạo sự kiện mới được sửa
-            if (@event.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            if (!User.IsInRole("Admin") && @event.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 return Forbid(); // Trả về lỗi 403 nếu không có quyền
             }
@@ -277,5 +554,7 @@ namespace Qconcert.Controllers
 
             return View(events);
         }
+
+
     }
 }

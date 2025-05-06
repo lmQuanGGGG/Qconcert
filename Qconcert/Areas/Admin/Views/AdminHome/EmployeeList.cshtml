@@ -1,0 +1,64 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+
+@{
+    ViewData["Title"] = "Danh Sách Nhân Viên";
+    Layout = "_Layout";
+}
+
+<h2 class="mt-4">@ViewData["Title"]</h2>
+
+<!-- Form tìm kiếm -->
+<form asp-action="SearchEmployee" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" class="form-control" name="email" placeholder="Nhập email nhân viên..." />
+        <button type="submit" class="btn btn-outline-danger">Tìm Kiếm</button>
+    </div>
+</form>
+
+<!-- Bảng responsive -->
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle text-center">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Email</th>
+                <th scope="col">Trạng Thái</th>
+                <th scope="col">Hành Động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model)
+            {
+                <tr>
+                    <td>@employee.Email</td>
+                    <td>
+                        @(employee.LockoutEnd.HasValue && employee.LockoutEnd > DateTimeOffset.UtcNow
+                            ? "Đã Vô Hiệu Hóa"
+                            : "Hoạt Động")
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center flex-wrap gap-2">
+                            <form asp-action="DeleteEmployee" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');">
+                                <input type="hidden" name="id" value="@employee.Id" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Xóa</button>
+                            </form>
+                            @if (employee.LockoutEnd.HasValue && employee.LockoutEnd > DateTimeOffset.UtcNow)
+                            {
+                                <form asp-action="EnableEmployee" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn mở khóa tài khoản này?');">
+                                    <input type="hidden" name="id" value="@employee.Id" />
+                                    <button type="submit" class="btn btn-outline-success btn-sm">Mở Khóa</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="DisableEmployee" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này?');">
+                                    <input type="hidden" name="id" value="@employee.Id" />
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">Vô Hiệu Hóa</button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

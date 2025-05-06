@@ -49,7 +49,7 @@ public async Task<IActionResult> Create(Ticket model, IFormFile HinhAnhVe)
             model.HinhAnhVe = memoryStream.ToArray();
         }
     }
-
+    model.SoLuongConLai = model.SoLuongGhe; // Gán số lượng còn lại bằng số lượng ghế
     model.CreatedAt = DateTime.Now; // Thiết lập thời gian tạo mặc định
 
     // Thêm vé vào database

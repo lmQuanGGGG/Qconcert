@@ -27,6 +27,11 @@ namespace Qconcert.Models
 
         // Phương thức thanh toán
         public string PaymentMethod { get; set; }
+         // Thêm các trường mới
+        public string TransactionId { get; set; }
+        public DateTime? PaymentDate { get; set; }
+        public string BankTransferImage { get; set; }
+        public string QrCodeUrl { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }

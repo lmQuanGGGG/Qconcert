@@ -33,9 +33,11 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label asp-for="Price" class="control-label">Giá vé</label>
-                        <input asp-for="Price" class="form-control" />
+                        <input id="FormattedPrice" class="form-control" />
+                        <input type="hidden" asp-for="Price" id="Price" />
                         <span asp-validation-for="Price" class="text-danger"></span>
                     </div>
+
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
@@ -93,8 +95,18 @@
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Tạo vé</button>
-            <button type="button" class="btn btn-secondary" onclick="addAnotherTicket()">Thêm vé khác</button>
-            <a asp-action="CreatePaymentInfo" asp-controller="Payment" asp-route-eventId="@Model.EventId" class="btn btn-info">Ghi thông tin thanh toán</a>
+            @if (ViewBag.Tickets != null && ViewBag.Tickets.Count > 0)
+            {
+                <a asp-action="CreatePaymentInfo" asp-controller="Payment" asp-route-eventId="@Model.EventId" class="btn btn-info">
+                    Ghi thông tin thanh toán
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-info" disabled>
+                    Ghi thông tin thanh toán (Không có vé)
+                </button>
+            }
         </form>
     </div>
 </div>
@@ -104,6 +116,7 @@
         Các loại vé đã tạo
     </div>
     <div class="card-body">
+        <div class="table-responsive">
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -129,13 +142,18 @@
                         <td>@ticket.ThoiGianBatDauBanVe</td>
                         <td>@ticket.ThoiGianKetThucBanVe</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="editTicket(@ticket.Id)">Sửa</button>
-                            <a asp-action="Delete" asp-route-id="@ticket.Id" class="btn btn-danger btn-sm">Xóa</a>
+                            <button class="btn-transparent" onclick="editTicket(@ticket.Id)" title="Sửa">
+                                <i class="fas fa-edit"></i> <!-- Biểu tượng sửa -->
+                            </button>
+                            <a asp-action="Delete" asp-route-id="@ticket.Id" class="btn-transparent" title="Xóa">
+                                <i class="fas fa-trash"></i> <!-- Biểu tượng xóa -->
+                            </a>
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -154,6 +172,32 @@
                 output.style.display = 'block';
             };
             reader.readAsDataURL(event.target.files[0]);
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const formatted = document.getElementById("FormattedPrice");
+            const raw = document.getElementById("Price");
+
+            formatted.addEventListener("input", function () {
+                // Xóa các dấu không phải số
+                let rawValue = this.value.replace(/\D/g, "");
+
+                if (rawValue) {
+                    raw.value = rawValue;
+                    this.value = parseInt(rawValue).toLocaleString("vi-VN");
+                } else {
+                    raw.value = "";
+                    this.value = "";
+                }
+            });
+
+            formatted.addEventListener("blur", function () {
+                if (!this.value || parseInt(raw.value) < 1) {
+                    raw.value = 1;
+                    this.value = "1".toLocaleString("vi-VN");
+                }
+            });
         });
     </script>
     <script>

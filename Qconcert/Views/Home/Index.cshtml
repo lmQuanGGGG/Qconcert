@@ -54,14 +54,20 @@
     }
     else
     {
-        <p>Không có sự kiện VIP nào đang hiển thị.</p>
+        <div class="col-12 mt-4">
+            <div class="alert alert-info">
+                <h5>Quản lý sự kiện dễ dàng hơn với ứng dụng Qconcert Event Manager</h5>
+                <p>Tải ứng dụng trên điện thoại để quản lý sự kiện mọi lúc, mọi nơi.</p>
+            </div>
+        </div>
     }
 
 
     <!-- Hiển thị sự kiện Thường -->
-    <h5 class="mb-4 mt-4">Sự kiện đặc biệt</h5>
+    
     @if (Model.RegularEvents != null && Model.RegularEvents.Any())
     {
+        <h5 class="mb-4 mt-4">Sự kiện đặc biệt</h5>
         <div class="swiper mySwiperRegular">
             <div class="swiper-wrapper">
                 @foreach (var regularEvent in Model.RegularEvents)
@@ -82,10 +88,7 @@
             <div class="swiper-pagination"></div>
         </div>
     }
-    else
-    {
-        <p>Không có sự kiện thường nào.</p>
-    }
+
 
 
     <!-- Hiển thị sự kiện theo loại -->

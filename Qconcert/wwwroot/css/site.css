@@ -43,9 +43,9 @@ html {
 
     /* Link trong navbar */
     .navbar a {
-        color: #FFFFFF; /* Màu vàng sáng nổi bật */
-        font-size: 1.0rem; /* Chữ to hơn */
-        font-weight: bold;
+        color: #FFFFFF; 
+        font-size: 1.0rem; 
+        
         text-decoration: none;
         padding: 12px 18px; /* Nút to hơn một chút */
         transition: all 0.3s ease-in-out;
@@ -395,7 +395,7 @@ td, th {
 
 .nav-link.text-dark {
     color: white !important; /* Chữ màu trắng */
-    font-weight: bold; /* Chữ đậm */
+    /* Chữ đậm */
 
     align-items: center; /* Căn giữa theo chiều dọc */
 
@@ -405,11 +405,10 @@ td, th {
 .nav-linkie {
     color: #39ff14; /* Xanh neon */
     font-weight: bold; /* Chữ đậm */
-    font-size: 20px; /* Tăng kích thước chữ */
-   
+    /* Tăng kích thước chữ */
+    font-size: 20px;
     display: flex;
     align-items: center; /* Căn giữa theo chiều dọc */
- 
 }
 .event-container {
     display: flex;
@@ -760,5 +759,3 @@ body {
 .mySwiperRegular .swiper-slide img {
     border-radius: 10px; /* Thêm bo góc cho ảnh trong swiper */
 }
-
-

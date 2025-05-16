@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 
 namespace Qconcert.Models;
@@ -42,15 +44,19 @@ public partial class Event
     public string? OrganizerName { get; set; }
 
     public string? OrganizerInfo { get; set; }
+    
 
     public byte[]? OrganizerLogo { get; set; }
     public string CreatedBy { get; set; } = null!; // ID của người tạo sự kiện
 
     public bool IsApproved { get; set; } = false; // Trạng thái duyệt sự kiện
-
+    public bool IsPaid { get; set; } = false; // Trạng thái thanh toán sự kiện
     public virtual Category? Category { get; set; }
-
+    public virtual IdentityUser? Creator { get; set; } 
     public virtual ICollection<Ticket> Tickets { get; set; }
 
     public ICollection<PromotionPackage> PromotionPackages { get; set; } // Liên kết với gói khuyến mãi
+    public ICollection<PaymentInfo> PaymentInfos { get; set; } 
+
+
 }

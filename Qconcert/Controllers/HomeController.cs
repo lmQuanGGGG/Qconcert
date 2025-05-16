@@ -201,7 +201,7 @@ namespace Qconcert.Controllers
             return View(viewModel);
         }
 
-        private async Task CheckAndActivatePendingPromotions()
+        public async Task CheckAndActivatePendingPromotions()
         {
             // Lấy danh sách các gói VIP đang chờ hiển thị
             var pendingPromotions = await _context.PromotionPackages

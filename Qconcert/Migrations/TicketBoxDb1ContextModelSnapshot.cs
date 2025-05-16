@@ -268,7 +268,7 @@ namespace Qconcert.Migrations
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime");
@@ -291,6 +291,9 @@ namespace Qconcert.Migrations
                         .HasColumnType("varbinary(max)");
 
                     b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -322,6 +325,8 @@ namespace Qconcert.Migrations
                         .HasName("PK__Events__3214EC07FF70E776");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("CreatedBy");
 
                     b.ToTable("Events");
                 });
@@ -657,7 +662,15 @@ namespace Qconcert.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Events_Categories");
 
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Category");
+
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("Qconcert.Models.OrderDetail", b =>
@@ -682,7 +695,7 @@ namespace Qconcert.Migrations
             modelBuilder.Entity("Qconcert.Models.PaymentInfo", b =>
                 {
                     b.HasOne("Qconcert.Models.Event", "Event")
-                        .WithMany()
+                        .WithMany("PaymentInfos")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -719,6 +732,8 @@ namespace Qconcert.Migrations
 
             modelBuilder.Entity("Qconcert.Models.Event", b =>
                 {
+                    b.Navigation("PaymentInfos");
+
                     b.Navigation("PromotionPackages");
 
                     b.Navigation("Tickets");

@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -8,7 +9,7 @@ using Qconcert.Services;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
-
+using Qconcert.Controllers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Thêm các dịch vụ vào container
@@ -41,6 +42,13 @@ builder.Services.AddCors(options =>
 // Đăng ký TicketBoxDbContext với dependency injection
 builder.Services.AddDbContext<TicketBoxDb1Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TicketBoxDb1Context")));
+// Cấu hình Hangfire với SQL Server
+builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("TicketBoxDb1Context")));
+
+// Thêm Hangfire Server
+builder.Services.AddHangfireServer();
+
 
 // Đăng ký các dịch TicketService
 builder.Services.AddScoped<TicketService>();
@@ -66,7 +74,16 @@ builder.Services.AddRazorPages();
 // Cấu hình dịch vụ PDF
 
 var app = builder.Build();
-
+// Đăng ký job Hangfire sau khi ứng dụng được khởi tạo
+using (var scope = app.Services.CreateScope())
+{
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    recurringJobManager.AddOrUpdate<HomeController>(
+        "CheckPendingPromotions",
+        controller => controller.CheckAndActivatePendingPromotions(),
+        "*/5 * * * *" // Chạy mỗi 5 phút
+    );
+}
 // Cấu hình pipeline xử lý HTTP request
 if (!app.Environment.IsDevelopment())
 {
@@ -75,12 +92,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
+app.UseHangfireDashboard();
 
 
 app.UseRouting();
 app.UseCors("AllowSpecificOrigins");
-
+app.UseHangfireDashboard();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();

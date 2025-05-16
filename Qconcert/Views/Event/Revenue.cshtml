@@ -4,11 +4,42 @@
 
 <h2>Thống kê doanh thu theo sự kiện</h2>
 
+<!-- Tổng quan -->
+<h2>Tổng quan</h2>
+<div class="d-flex gap-3 mb-4">
+    <div class="mwangg flex-fill text-white bg-dark p-3 d-flex align-items-center">
+        <div class="flex-grow-1">
+            <h5>Doanh thu</h5>
+            <h3 id="totalRevenue">0đ</h3>
+            <div>Tổng: <span id="maxRevenue">0đ</span></div>
+        </div>
+        <div class="d-flex justify-content-center mt-2">
+            <div class="rounded-circle border border-warning" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                <span id="revenuePercentage" class="text-success fw-bold">0%</span>
+            </div>
+        </div>
+    </div>
+    <div class="mwangg flex-fill text-white bg-dark p-3 d-flex align-items-center">
+        <div class="flex-grow-1">
+            <h5>Số vé đã bán</h5>
+            <h3 id="totalTicketsSold">0 vé</h3>
+            <div>Tổng: <span id="maxTickets">0 vé</span></div>
+        </div>
+        <div class="d-flex justify-content-center mt-2">
+            <div class="rounded-circle border border-warning" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                <span id="ticketPercentage" class="text-success fw-bold">0%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Bộ lọc -->
 <div class="mb-3">
     <label for="eventSelect" class="form-label">Chọn sự kiện:</label>
     <select id="eventSelect" class="form-select">
         <option value="">Tất cả sự kiện</option>
-        <!-- Các sự kiện sẽ được thêm động từ API -->
     </select>
 </div>
 
@@ -18,15 +49,17 @@
         <option value="30days">30 ngày qua</option>
         <option value="24hours">24 giờ qua</option>
         <option value="1year">1 năm qua</option>
+        <option value="all">Tất cả thời gian</option> <!-- Thêm lựa chọn "Tất cả thời gian" -->
     </select>
 </div>
 
+<!-- Biểu đồ -->
 <canvas id="revenueChart"></canvas>
 
-
+<!-- Bảng vé -->
 <h2 class="mt-5">Vé đã bán</h2>
 <div class="table-responsive">
-    <table class="table table-dark table-bordered">
+    <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Loại Vé</th>
@@ -51,7 +84,9 @@
         const chartCanvas = document.getElementById("revenueChart");
         let chart;
 
-        // Load danh sách sự kiện
+        let maxRevenue = 0;
+        let maxTickets = 0;
+
         function loadEvents() {
             fetch('/api/statistics/api/events')
                 .then(response => response.json())
@@ -66,143 +101,183 @@
                 .catch(error => console.error('Error loading events:', error));
         }
 
-        // Load biểu đồ doanh thu
-        function loadRevenue() {
+        function loadSummary() {
             const eventId = eventSelect.value;
-            const timeRange = timeRangeSelect.value;
-
-            let url = `/api/statistics/revenue-by-event?timeRange=${timeRange}`;
-            if (eventId) {
-                url += `&eventId=${eventId}`;
+            if (!eventId) {
+                maxRevenue = 0;
+                maxTickets = 0;
+                loadRevenue();
+                return;
             }
 
-            fetch(url)
+            fetch(`/api/statistics/full-revenue-summary?eventId=${eventId}`)
                 .then(response => response.json())
                 .then(data => {
-                    const labels = data.map(item => item.time);
-                    const revenues = data.map(item => item.totalRevenue);
-                    const ticketsSold = data.map(item => item.ticketsSold);
+                    maxRevenue = data.totalRevenue || 0;
+                    maxTickets = data.totalTickets || 0;
 
-                    if (chart) {
-                        chart.destroy();
-                    }
+                    document.getElementById("maxRevenue").textContent = maxRevenue.toLocaleString('vi-VN') + 'đ';
+                    document.getElementById("maxTickets").textContent = maxTickets + ' vé';
 
-                    const ctx = chartCanvas.getContext('2d');
-                    chart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Doanh thu (VNĐ)',
-                                    data: revenues,
-                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                    borderColor: 'rgba(75, 192, 192, 1)',
-                                    borderWidth: 1
-                                },
-                                {
-                                    label: 'Số vé đã bán',
-                                    data: ticketsSold,
-                                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                                    borderColor: 'rgba(255, 159, 64, 1)',
-                                    borderWidth: 1
-                                }
-                            ]
-                        },
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function (value) {
-                                            return value.toLocaleString('vi-VN');
-                                        }
+                    loadRevenue();
+                })
+                .catch(error => {
+                    console.error('Error loading summary:', error);
+                    loadRevenue(); // fallback nếu lỗi
+                });
+        }
+
+            function loadRevenue() {
+        const eventId = eventSelect.value;
+        const timeRange = timeRangeSelect.value;
+
+        let url = `/api/statistics/revenue-by-event?timeRange=${timeRange}`;
+        if (eventId) {
+            url += `&eventId=${eventId}`;
+        }
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => item.time);
+                const revenues = data.map(item => item.totalRevenue);
+                const ticketsSold = data.map(item => item.ticketsSold);
+
+                if (chart) {
+                    chart.destroy();
+                }
+
+                const ctx = chartCanvas.getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Doanh thu (VNĐ)',
+                                data: revenues,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Số vé đã bán',
+                                data: ticketsSold,
+                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                borderColor: 'rgba(255, 159, 64, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (value) {
+                                        return value.toLocaleString('vi-VN');
                                     }
                                 }
-                            },
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: function (context) {
-                                            if (context.dataset.label === 'Doanh thu (VNĐ)') {
-                                                return context.raw.toLocaleString('vi-VN') + ' VNĐ';
-                                            } else {
-                                                return context.raw.toLocaleString('vi-VN') + ' vé';
-                                            }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        if (context.dataset.label === 'Doanh thu (VNĐ)') {
+                                            return context.raw.toLocaleString('vi-VN') + ' VNĐ';
+                                        } else {
+                                            return context.raw.toLocaleString('vi-VN') + ' vé';
                                         }
                                     }
                                 }
                             }
                         }
-                    });
-                })
-                .catch(error => console.error('Error loading revenue:', error));
-        }
-
-        // Load bảng vé đã bán
-        function loadTicketsSold() {
-            const eventId = eventSelect.value;
-            const tbody = document.getElementById('ticketsSoldTableBody');
-            tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Đang tải...</td></tr>";
-
-            if (!eventId) {
-                tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Vui lòng chọn sự kiện.</td></tr>";
-                return;
-            }
-
-            fetch(`/api/statistics/tickets-sold-by-event?eventId=${eventId}`)
-                .then(response => response.json())
-                .then(data => {
-                    tbody.innerHTML = "";
-
-                    if (data.length === 0) {
-                        tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Không có dữ liệu.</td></tr>";
-                        return;
                     }
-
-                    data.forEach(ticket => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-        <td>${ticket.ticketType}</td>
-        <td>${ticket.price.toLocaleString('vi-VN')}đ</td>
-        <td><b>${ticket.sold} / ${ticket.total}</b></td>
-        <td>
-            <div class="d-flex align-items-center" style="gap: 10px;">
-                <div class="flex-grow-1">
-                    <div class="progress" style="height: 20px;">
-                        <div class="progress-bar bg-warning text-white"
-                             role="progressbar"
-                             style="width: ${ticket.soldPercentage}%;"
-                             aria-valuenow="${ticket.soldPercentage}"
-                             aria-valuemin="0" aria-valuemax="100">
-                        </div>
-                    </div>
-                </div>
-                <div style="min-width: 40px;" class="text-end fw-bold text-white">
-                    ${Math.round(ticket.soldPercentage)}%
-                </div>
-            </div>
-        </td>
-    `;
-
-                        tbody.appendChild(row);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading tickets sold:', error);
-                    tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Lỗi tải dữ liệu.</td></tr>";
                 });
+
+                const totalRevenue = revenues.reduce((sum, val) => sum + val, 0);
+                const totalTickets = ticketsSold.reduce((sum, val) => sum + val, 0);
+                const revenuePercent = maxRevenue > 0 ? (totalRevenue / maxRevenue * 100) : 0;
+                const ticketPercent = maxTickets > 0 ? (totalTickets / maxTickets * 100) : 0;
+
+                // Cập nhật phần trăm, hiển thị chính xác 2 chữ số thập phân
+                document.getElementById("totalRevenue").textContent = totalRevenue.toLocaleString('vi-VN') + 'đ';
+                document.getElementById("revenuePercentage").textContent = `${revenuePercent.toFixed(2)}%`;
+
+                document.getElementById("totalTicketsSold").textContent = totalTickets + ' vé';
+                document.getElementById("ticketPercentage").textContent = `${ticketPercent.toFixed(2)}%`;
+            })
+            .catch(error => console.error('Error loading revenue:', error));
+    }
+
+
+            function loadTicketsSold() {
+        const eventId = eventSelect.value;
+        const tbody = document.getElementById('ticketsSoldTableBody');
+        tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Đang tải...</td></tr>";
+
+        if (!eventId) {
+            tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Vui lòng chọn sự kiện.</td></tr>";
+            return;
         }
 
-        // Khi thay đổi sự kiện hoặc khoảng thời gian
-        eventSelect.addEventListener("change", function () {
-            loadRevenue();
-            loadTicketsSold();
-        });
+        fetch(`/api/statistics/tickets-sold-by-event?eventId=${eventId}`)
+            .then(response => response.json())
+            .then(data => {
+                tbody.innerHTML = "";
+                if (data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Không có dữ liệu.</td></tr>";
+                    return;
+                }
+
+                data.forEach(ticket => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${ticket.ticketType}</td>
+                        <td>${ticket.price.toLocaleString('vi-VN')}đ</td>
+                        <td><b>${ticket.sold} / ${ticket.total}</b></td>
+                        <td>
+                            <div class="d-flex align-items-center" style="gap: 10px;">
+                                <div class="flex-grow-1">
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-warning"
+                                             role="progressbar"
+                                             style="width: ${ticket.soldPercentage}%;"
+                                             aria-valuenow="${ticket.soldPercentage}"
+                                             aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="min-width: 40px;" class="text-end fw-bold">
+                                    ${ticket.soldPercentage.toFixed(2)}%  <!-- Sửa ở đây -->
+                                </div>
+                            </div>
+                        </td>`;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading tickets sold:', error);
+                tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Lỗi tải dữ liệu.</td></tr>";
+            });
+    }
+
+    eventSelect.addEventListener("change", function () {
+        loadSummary();      // dùng API để lấy maxRevenue + maxTickets
+        loadTicketsSold();  // không đổi
+    });
+
         timeRangeSelect.addEventListener("change", loadRevenue);
 
-        // Tải dữ liệu ban đầu
+        // Khởi tạo
         loadEvents();
-        loadRevenue();
+        loadSummary();
     });
+
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+    }
 </script>

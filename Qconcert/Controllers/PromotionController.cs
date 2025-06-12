@@ -225,6 +225,19 @@ namespace Qconcert.Controllers
          }*/
         private async Task CheckAndActivatePendingPromotions()
         {
+            // ===== CẬP NHẬT GÓI HẾT HẠN (VIP + Normal) =====
+            var expiredPromotions = await _context.PromotionPackages
+                .Where(p => p.Status == PromotionStatus.Approved)
+                .Where(p => p.ActualStartDate.HasValue)
+                .Where(p => p.ActualStartDate.Value.AddDays(p.DurationInDays) < DateTime.Now)
+                .ToListAsync();
+
+            foreach (var expired in expiredPromotions)
+            {
+                expired.Status = PromotionStatus.Expired;
+                _context.PromotionPackages.Update(expired);
+            }
+
             // Lấy danh sách các gói VIP đang chờ hiển thị
             var pendingPromotions = await _context.PromotionPackages
                 .Where(p => p.Type == PromotionType.VIP && p.Status == PromotionStatus.Pending && p.IsInQueue)

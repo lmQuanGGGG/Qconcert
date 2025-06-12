@@ -1,0 +1,98 @@
+﻿@model IEnumerable<Qconcert.Models.Order>
+
+@{
+    ViewData["Title"] = "Lịch sử mua vé";
+}
+
+<h2>Lịch sử mua vé</h2>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <input type="text" id="searchName" class="form-control" placeholder="Tìm theo tên sự kiện...">
+    </div>
+    <div class="col-md-3">
+        <input type="date" id="searchDateFrom" class="form-control" placeholder="Từ ngày">
+    </div>
+    <div class="col-md-3">
+        <input type="date" id="searchDateTo" class="form-control" placeholder="Đến ngày">
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <p>Bạn chưa có đơn hàng nào.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Sự kiện</th>
+                <th>Ngày đặt</th>
+                <th>Loại vé</th>
+                <th>Giá vé</th>
+                <th>Số lượng</th>
+                <th>Tổng tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    <tr>
+                        <td>@order.Id</td>
+                        <td>@detail.Ticket?.Event?.Name</td>
+                        <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@detail.Ticket?.LoaiVe</td>
+                        <td>@detail.Ticket?.Price.ToString("N0") đ</td>
+                        <td>@detail.Quantity</td>
+                        <td>@order.TotalAmount.ToString("N0") đ</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+<script>
+    document.getElementById('searchName').addEventListener('input', filterTable);
+    document.getElementById('searchDateFrom').addEventListener('change', filterTable);
+    document.getElementById('searchDateTo').addEventListener('change', filterTable);
+
+    function filterTable() {
+        var nameValue = document.getElementById('searchName').value.toLowerCase();
+        var dateFrom = document.getElementById('searchDateFrom').value;
+        var dateTo = document.getElementById('searchDateTo').value;
+        var rows = document.querySelectorAll('table tbody tr');
+
+        rows.forEach(function(row) {
+            var eventName = row.children[1].textContent.toLowerCase();
+            var orderDate = row.children[2].textContent.trim();
+            var show = true;
+
+            // Lọc theo tên sự kiện
+            if (nameValue && !eventName.includes(nameValue)) {
+                show = false;
+            }
+
+            // Lọc theo khoảng ngày (định dạng dd/MM/yyyy)
+            if ((dateFrom || dateTo) && orderDate) {
+                var parts = orderDate.split(' ')[0].split('/');
+                var rowDate = new Date(parts[2], parts[1] - 1, parts[0]); // yyyy, MM-1, dd
+
+                if (dateFrom) {
+                    var fromDate = new Date(dateFrom);
+                    if (rowDate < fromDate) show = false;
+                }
+                if (dateTo) {
+                    var toDate = new Date(dateTo);
+                    if (rowDate > toDate) show = false;
+                }
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+</script>

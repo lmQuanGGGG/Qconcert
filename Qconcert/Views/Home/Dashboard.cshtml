@@ -30,15 +30,16 @@
                             <th>Tên sự kiện</th>
                             <th>Trạng thái</th>
                             <th>Ngày giờ</th>
+                            <th>Tình trạng</th> <!-- Cột mới -->
                             <th>Quản lý</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var eventItem in Model)
                         {
+                            var isPastEvent = eventItem.Date < DateTime.Now;
                             <tr>
                                 <td>
-                                    <!-- Bọc ảnh trong thẻ <a> để dẫn đến trang chi tiết -->
                                     <a href="/Home/Details/@eventItem.Id">
                                         <img src="data:image/jpeg;base64,@Convert.ToBase64String(eventItem.Image16x9)" alt="@eventItem.Name" class="img-fluid" style="width: 100px;" />
                                     </a>
@@ -46,17 +47,54 @@
                                 <td>@eventItem.Name</td>
                                 <td>@eventItem.Status</td>
                                 <td>@eventItem.Date.ToString("dd/MM/yyyy HH:mm")</td>
-                                @if (User.Identity.IsAuthenticated) // Kiểm tra xem người dùng đã đăng nhập chưa
+                                <td>
+                                    @if (isPastEvent)
+                                    {
+                                        <span class="badge bg-secondary">Đã diễn ra</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Sắp diễn ra</span>
+                                    }
+                                </td>
+                                @if (User.Identity.IsAuthenticated)
                                 {
                                     <td>
-                                        <a href="/Home/Edit/@eventItem.Id" class="btn btn-warning btn-sm">Chỉnh sửa</a>
-                                        <a href="/Home/Delete/@eventItem.Id" class="btn btn-danger btn-sm">Xóa</a>
-                                        <a href="/Promotion/Register/@eventItem.Id" class="btn btn-success btn-sm">Đăng ký PR</a> <!-- Nút Đăng ký PR -->
+                                        @if (!isPastEvent)
+                                        {
+                                            <a href="/Home/Edit/@eventItem.Id" class="btn btn-outline-warning btn-sm me-1" title="Chỉnh sửa">
+                                                <span class="material-icons">edit</span>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary btn-sm me-1" disabled title="Không thể chỉnh sửa sự kiện đã kết thúc">
+                                                <span class="material-icons">edit</span>
+                                            </button>
+                                        }
+
+                                        <a href="/Home/Delete/@eventItem.Id" class="btn btn-outline-danger btn-sm me-1" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa sự kiện này?');">
+                                            <span class="material-icons">delete</span>
+                                        </a>
+
+                                        @if (!isPastEvent)
+                                        {
+                                            <a href="/Promotion/Register/@eventItem.Id" class="btn btn-outline-success btn-sm" title="Đăng ký PR">
+                                                <span class="material-icons">campaign</span>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary btn-sm" disabled title="Sự kiện đã kết thúc, không thể PR">
+                                                <span class="material-icons">campaign</span>
+                                            </button>
+                                        }
                                     </td>
                                 }
                             </tr>
                         }
                     </tbody>
+
                 </table>
             </div>
         </div>

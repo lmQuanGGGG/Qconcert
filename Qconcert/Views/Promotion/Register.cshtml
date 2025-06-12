@@ -32,7 +32,7 @@
     </div>
 
     <div class="mb-3">
-        <label for="mediaFile" class="form-label">Upload media:</label>
+        <label for="mediaFile" class="form-label">Tải ảnh/video lên:</label>
         <input type="file" name="mediaFile" id="mediaFile" class="form-control" accept=".jpg,.jpeg,.png,.mp4" required />
         @Html.ValidationMessage("mediaFile", "", new { @class = "text-danger" })
         <small class="form-text text-muted">
@@ -41,5 +41,5 @@
         </small>
     </div>
 
-    <button type="submit" class="btn btn-primary">Thanh toán &amp; Đăng ký</button>
+    <button type="submit" class="btn btn-outline-warning btn-sm mt-3" style="min-width: 80px;">Thanh toán &amp; Đăng ký</button>
 </form>

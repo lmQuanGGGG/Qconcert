@@ -12,24 +12,24 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label asp-for="Name" class="control-label"></label>
+                        <label asp-for="Name" class="control-label">Tên sự kiện</label>
                         <input asp-for="Name" class="form-control" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="CategoryId" class="control-label"></label>
+                        <label asp-for="CategoryId" class="control-label">Loại sự kiện</label>
                         <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
                         <span asp-validation-for="CategoryId" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label asp-for="Date" class="control-label"></label>
+                        <label asp-for="Date" class="control-label">Ngày tổ chức</label>
                         <input asp-for="Date" class="form-control" type="datetime-local" />
                         <span asp-validation-for="Date" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Capacity" class="control-label"></label>
+                        <label asp-for="Capacity" class="control-label">Sức chứa</label>
                         <input asp-for="Capacity" class="form-control" />
                         <span asp-validation-for="Capacity" class="text-danger"></span>
                     </div>
@@ -37,36 +37,36 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
+                <label asp-for="Description" class="control-label">Mô tả</label>
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <label asp-for="EventInfo" class="control-label"></label>
+                <label asp-for="EventInfo" class="control-label">Thông tin sự kiện</label>
                 <textarea asp-for="EventInfo" class="form-control"></textarea>
                 <span asp-validation-for="EventInfo" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <label asp-for="Province" class="control-label"></label>
+                <label asp-for="Province" class="control-label">Tỉnh/Thành phố</label>
                 <select class="form-control" id="Province"></select>
                 <input type="hidden" asp-for="Province" id="ProvinceName" />
             </div>
 
             <div class="form-group">
-                <label asp-for="District" class="control-label"></label>
+                <label asp-for="District" class="control-label">Quận/Huyện</label>
                 <select class="form-control" id="District"></select>
                 <input type="hidden" asp-for="District" id="DistrictName" />
             </div>
 
             <div class="form-group">
-                <label asp-for="Ward" class="control-label"></label>
+                <label asp-for="Ward" class="control-label">Phường/Xã</label>
                 <select class="form-control" id="Ward"></select>
                 <input type="hidden" asp-for="Ward" id="WardName" />
             </div>
             <div class="form-group">
-                <label asp-for="AddressDetail" class="control-label"></label>
+                <label asp-for="AddressDetail" class="control-label">Địa chỉ chi tiết</label>
                 <input asp-for="AddressDetail" class="form-control" />
                 <span asp-validation-for="AddressDetail" class="text-danger"></span>
             </div>
@@ -118,13 +118,13 @@
                     <input type="file" id="OrganizerLogo" name="OrganizerLogo" class="d-none" onchange="previewImage(event, 'previewOrganizerLogo')" />
                 </div>
                 <div>
-                    <label asp-for="OrganizerName" class="control-label"></label>
+                    <label asp-for="OrganizerName" class="control-label">Tên ban tổ chức</label>
                     <input asp-for="OrganizerName" class="form-control" />
                     <span asp-validation-for="OrganizerName" class="text-danger"></span>
                 </div>
             </div>
             <div class="form-group">
-                <label asp-for="OrganizerInfo" class="control-label"></label>
+                <label asp-for="OrganizerInfo" class="control-label">Thông tin ban tổ chức</label>
                 <textarea asp-for="OrganizerInfo" class="form-control"></textarea>
                 <span asp-validation-for="OrganizerInfo" class="text-danger"></span>
             </div>
@@ -132,7 +132,7 @@
     </div>
 
     <div class="form-group mt-3 text-center">
-        <input type="submit" value="Lưu & Tiếp tục" class="btn btn-primary" />
+        <input type="submit" value="Lưu & Tiếp tục" class="btn btn-outline-warning btn-sm mt-3" style="min-width: 80px;" />
     </div>
 </form>
 

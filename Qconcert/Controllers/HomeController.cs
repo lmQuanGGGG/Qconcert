@@ -69,78 +69,7 @@ namespace Qconcert.Controllers
             return View(eventList);
         }
 
-
-
-
-        /*public async Task<IActionResult> Index()
-        {
-            var events = await _context.Events
-                                       .Include(e => e.Category)
-                                       .Include(e => e.Tickets)
-                                       .Where(e => e.IsApproved) // Lọc chỉ hiển thị sự kiện đã duyệt
-                                       .ToListAsync();
-
-            // Tính giá vé thấp nhất cho mỗi sự kiện
-            foreach (var @event in events)
-            {
-                ViewData[$"LowestPrice_{@event.Id}"] = @event.Tickets?.Min(t => t.Price) ?? 0;
-            }
-
-            var groupedEvents = events.GroupBy(e => e.Category).ToList();
-            return View(groupedEvents);
-        }*/
-        /*public async Task<IActionResult> Index()
-        {
-            // Lấy danh sách gói khuyến mãi đã thanh toán
-            var promotionPackages = await _context.PromotionPackages
-                .Include(p => p.Event)
-                    .ThenInclude(e => e.Category)
-                .Include(p => p.Event.Tickets)
-                .Where(p => p.IsPaid)
-                .ToListAsync();
-
-            // Sự kiện VIP
-            var vipEvents = promotionPackages
-                .Where(p => p.Type == PromotionType.VIP)
-                .Select(p => new VipPromotionViewModel
-                {
-                    Event = p.Event,
-                    MediaPath = p.MediaPath
-                })
-                .ToList();
-
-            // Sự kiện thường
-            var regularEvents = promotionPackages
-                .Where(p => p.Type == PromotionType.Normal)
-                .Select(p => new RegularPromotionViewModel
-                {
-                    Event = p.Event,
-                    MediaPath = p.MediaPath
-                })
-                .ToList();
-
-            // Các sự kiện không có gói khuyến mãi
-            var allEvents = await _context.Events
-                .Include(e => e.Category)
-                .Include(e => e.Tickets)
-                .Where(e => e.IsApproved)
-                .ToListAsync();
-
-            var categorizedEvents = allEvents
-                .Where(e => !promotionPackages.Any(p => p.EventId == e.Id))
-                .GroupBy(e => e.Category)
-                .ToList();
-
-            // Tạo ViewModel
-            var viewModel = new HomeIndexViewModel
-            {
-                VipEvents = vipEvents,
-                RegularEvents = regularEvents,
-                CategorizedEvents = categorizedEvents
-            };
-
-            return View(viewModel);
-        }*/
+        
         public async Task<IActionResult> Index()
         {
             // Kiểm tra và kích hoạt các sự kiện VIP "chờ hiển thị"
@@ -203,6 +132,19 @@ namespace Qconcert.Controllers
 
         public async Task CheckAndActivatePendingPromotions()
         {
+            // ===== CẬP NHẬT GÓI HẾT HẠN (VIP + Normal) =====
+            var expiredPromotions = await _context.PromotionPackages
+                .Where(p => p.Status == PromotionStatus.Approved)
+                .Where(p => p.ActualStartDate.HasValue)
+                .Where(p => p.ActualStartDate.Value.AddDays(p.DurationInDays) < DateTime.Now)
+                .ToListAsync();
+
+            foreach (var expired in expiredPromotions)
+            {
+                expired.Status = PromotionStatus.Expired;
+                _context.PromotionPackages.Update(expired);
+            }
+
             // Lấy danh sách các gói VIP đang chờ hiển thị
             var pendingPromotions = await _context.PromotionPackages
                 .Where(p => p.Type == PromotionType.VIP && p.Status == PromotionStatus.Pending && p.IsInQueue)
@@ -257,6 +199,28 @@ namespace Qconcert.Controllers
             await _context.SaveChangesAsync();
         }
 
+        [Authorize]
+        public async Task<IActionResult> TicketHistory()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.Email);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            // Lấy danh sách đơn hàng kèm chi tiết vé và sự kiện
+            var orders = await _context.Orders
+                .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.OrderDate)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Ticket)
+                        .ThenInclude(t => t.Event)
+                .ToListAsync();
+
+            return View(orders);
+        }
+
+
         public async Task<IActionResult> Success(int promotionPackageId)
         {
             var promotionPackage = await _context.PromotionPackages.FindAsync(promotionPackageId);
@@ -296,7 +260,7 @@ namespace Qconcert.Controllers
             return View(@event);
         }
 
-        public async Task<IActionResult> SearchFiltered(string category, DateTime? date, string location)
+        public async Task<IActionResult> SearchFiltered(string category, string dateFilter, string location)
         {
             var events = _context.Events
                 .Include(e => e.Category)
@@ -308,9 +272,29 @@ namespace Qconcert.Controllers
                 events = events.Where(e => e.Category.Name == category);
             }
 
-            if (date.HasValue)
+            if (!string.IsNullOrEmpty(dateFilter))
             {
-                events = events.Where(e => e.Date.Date == date.Value.Date);
+                DateTime today = DateTime.Today;
+
+                if (dateFilter == "today")
+                {
+                    events = events.Where(e => e.Date.Date == today);
+                }
+                else if (dateFilter == "this-week")
+                {
+                    var startOfWeek = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+                    var endOfWeek = startOfWeek.AddDays(6);
+                    events = events.Where(e => e.Date.Date >= startOfWeek && e.Date.Date <= endOfWeek);
+                }
+                else if (dateFilter.StartsWith("custom:"))
+                {
+                    var parts = dateFilter.Substring(7).Split(',');
+                    if (DateTime.TryParse(parts[0], out DateTime startDate) &&
+                        DateTime.TryParse(parts[1], out DateTime endDate))
+                    {
+                        events = events.Where(e => e.Date.Date >= startDate.Date && e.Date.Date <= endDate.Date);
+                    }
+                }
             }
 
             if (!string.IsNullOrEmpty(location))
@@ -320,7 +304,6 @@ namespace Qconcert.Controllers
 
             var filteredEvents = await events.ToListAsync();
 
-            // Tính giá vé thấp nhất cho mỗi sự kiện
             foreach (var @event in filteredEvents)
             {
                 ViewData[$"LowestPrice_{@event.Id}"] = @event.Tickets?.Min(t => t.Price) ?? 0;
@@ -328,6 +311,7 @@ namespace Qconcert.Controllers
 
             return PartialView("_EventListPartial", filteredEvents);
         }
+
 
 
         [Authorize]
@@ -342,12 +326,14 @@ namespace Qconcert.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Description,EventInfo,Date,CategoryId,Capacity,Province,District,Ward,AddressDetail,Image9x16,Image16x9,OrganizerName,OrganizerInfo,OrganizerLogo")] Event @event, IFormFile Image9x16, IFormFile Image16x9, IFormFile OrganizerLogo, int numberOfTickets, decimal ticketPrice, DateTime startTime, DateTime endTime, string ticketType)
         {
+            
             // Lấy ID của người dùng hiện tại
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
                 return Unauthorized();
             }
+          
 
             @event.CreatedBy = userId; // Gán CreatedBy cho người tạo
             @event.IsApproved = false; // Mặc định chưa được duyệt
@@ -373,7 +359,6 @@ namespace Qconcert.Controllers
                 await OrganizerLogo.CopyToAsync(ms);
                 @event.OrganizerLogo = ms.ToArray();
             }
-
             _context.Add(@event);
             await _context.SaveChangesAsync();
             // Tạo thông báo cho Admin

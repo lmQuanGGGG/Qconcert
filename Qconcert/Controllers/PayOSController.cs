@@ -59,7 +59,7 @@ namespace Qconcert.Controllers
         /// Tạo yêu cầu thanh toán cho gói khuyến mãi
         /// </summary>
         [Authorize]
-        [HttpGet] // ✅ Đổi từ HttpPost sang HttpGet để tương thích với RedirectToAction
+        [HttpGet] //  Đổi từ HttpPost sang HttpGet để tương thích với RedirectToAction
         public async Task<IActionResult> CreatePayment(int promotionPackageId)
         {
 

@@ -146,7 +146,6 @@ namespace Qconcert.Controllers
             return View(category);
         }
 
-        // POST: Category/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -156,10 +155,19 @@ namespace Qconcert.Controllers
             {
                 return NotFound();
             }
+
+            bool hasRelatedEvents = await _context.Events.AnyAsync(e => e.CategoryId == id);
+            if (hasRelatedEvents)
+            {
+                ViewBag.ErrorMessage = "Không thể xóa loại này vì đang có sự kiện liên quan.";
+                return View(category);
+            }
+
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool CategoryExists(int id)
         {

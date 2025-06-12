@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using Qconcert.Controllers;
+using Rotativa.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Thêm các dịch vụ vào container
@@ -89,7 +90,7 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
-
+RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseHangfireDashboard();

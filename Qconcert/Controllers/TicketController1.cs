@@ -111,20 +111,28 @@ public IActionResult Edit(int id)
 
 
         public IActionResult Delete(int id)
-{
-    var ticket = _context.Tickets.Find(id);
-    if (ticket == null)
-    {
-        return NotFound();
-    }
-    _context.Tickets.Remove(ticket);
-    _context.SaveChanges();
+        {
+            var ticket = _context.Tickets.Find(id);
+            if (ticket == null)
+            {
+                return NotFound();
+            }
 
-    TempData["SuccessMessage"] = "Xóa vé thành công.";
-    return RedirectToAction("Create", new { eventId = ticket.EventId });
-}
+            var ticketTypeCount = _context.Tickets
+                .Count(t => t.EventId == ticket.EventId);
 
+            if (ticketTypeCount <= 1)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa. Sự kiện phải có ít nhất một loại vé.";
+                return RedirectToAction("Create", new { eventId = ticket.EventId });
+            }
 
+            _context.Tickets.Remove(ticket);
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Xóa vé thành công.";
+            return RedirectToAction("Create", new { eventId = ticket.EventId });
+        }
     }
 }
 

@@ -759,3 +759,67 @@ body {
 .mySwiperRegular .swiper-slide img {
     border-radius: 10px; /* Thêm bo góc cho ảnh trong swiper */
 }
+.wang-card {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.wang-card:hover,
+.wang-card:focus-within {
+    transform: scale(1.03);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Pseudo-element tạo viền chạy */
+.wang-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 14px;
+    background: linear-gradient(270deg, #ff416c, #ff4b2b, #ff416c);
+    background-size: 600% 600%;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: borderRun 4s linear infinite;
+}
+
+/* Chỉ hiện viền khi hover/focus */
+.wang-card:hover::before,
+.wang-card:focus-within::before {
+    opacity: 1;
+}
+
+/* Để lớp ảnh nội dung hiển thị trên viền */
+.wang-card > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* Ảnh bên trong */
+.wang-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.wang-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Keyframes animation cho hiệu ứng viền chuyển động */
+@keyframes borderRun {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+

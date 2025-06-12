@@ -58,7 +58,7 @@ namespace Qconcert.Areas.Identity.Pages.Account
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
-            [Display(Name = "Nhớ mật khẩu")]
+            [Display(Name = "Nhớ đăng nhập")]
             public bool RememberMe { get; set; }
         }
 

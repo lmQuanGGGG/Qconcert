@@ -1,9 +1,15 @@
 ﻿@model Qconcert.Models.Category
 
 <h2>Xóa danh mục</h2>
-
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
 <h4>Bạn có chắc chắn muốn xóa danh mục này?</h4>
 <hr />
+
 <div>
     <h4>Danh mục</h4>
     <hr />

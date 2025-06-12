@@ -38,10 +38,27 @@
                             }
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label for="dateFilter" class="form-label">Ngày</label>
-                        <input type="date" id="dateFilter" name="date" class="form-control" />
+                        <select id="dateFilter" name="dateFilter" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="today">Hôm nay</option>
+                            <option value="this-week">Tuần này</option> 
+                            <option value="custom">Khoảng ngày tùy chọn</option>
+                        </select>
                     </div>
+
+                    <!-- Khoảng ngày tùy chọn -->
+                    <div class="mb-3 d-none" id="customDateRange">
+                        <label class="form-label">Khoảng ngày</label>
+                        <div class="input-group">
+                            <input type="date" id="startDate" class="form-control" />
+                            <span class="input-group-text">đến</span>
+                            <input type="date" id="endDate" class="form-control" />
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Vị trí</label>
                         <div class="form-check"><input class="form-check-input" type="radio" name="location" value="" checked> <label class="form-check-label">Toàn quốc</label></div>
@@ -53,23 +70,45 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" id="applyFilters" class="btn btn-primary">Áp dụng</button>
+                <button type="button" id="applyFilters" class="btn btn-outline-danger btn-sm" style="min-width: 80px;">Áp dụng</button>
             </div>
         </div>
     </div>
 </div>
 
-
 <!-- JavaScript -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const dateFilterSelect = document.getElementById("dateFilter");
+        const customDateRangeDiv = document.getElementById("customDateRange");
+
+        // Hiện/ẩn phần chọn khoảng ngày khi chọn "custom"
+        dateFilterSelect.addEventListener("change", function () {
+            if (this.value === "custom") {
+                customDateRangeDiv.classList.remove("d-none");
+            } else {
+                customDateRangeDiv.classList.add("d-none");
+            }
+        });
+
         // Bắt sự kiện click nút Áp dụng
         document.getElementById("applyFilters").addEventListener("click", function () {
             const category = document.getElementById("categoryFilter").value;
-            const date = document.getElementById("dateFilter").value;
             const location = document.querySelector('input[name="location"]:checked').value;
 
-            const queryParams = new URLSearchParams({ category, date, location });
+            let dateFilter = document.getElementById("dateFilter").value;
+            if (dateFilter === "custom") {
+                const start = document.getElementById("startDate").value;
+                const end = document.getElementById("endDate").value;
+                if (start && end) {
+                    dateFilter = `custom:${start},${end}`;
+                } else {
+                    alert("Vui lòng chọn đầy đủ khoảng ngày bắt đầu và kết thúc.");
+                    return;
+                }
+            }
+
+            const queryParams = new URLSearchParams({ category, dateFilter, location });
 
             fetch(`/Home/SearchFiltered?${queryParams.toString()}`)
                 .then(response => response.text())

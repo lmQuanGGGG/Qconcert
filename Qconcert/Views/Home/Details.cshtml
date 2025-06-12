@@ -31,7 +31,19 @@
             <a href="@Url.Action("Details", "Cart", new { id = Model.Id })" class="text-danger fw-bold mb-2 price-text d-block">
                 Giá từ @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", ViewData["LowestPrice"])
             </a>
-            <a href="@Url.Action("Details", "Cart", new { id = Model.Id })" class="btn btn-success w-100 fw-bold">Mua vé ngay</a>
+            <div>
+                <hr class="my-3" /> <!-- Gạch ngang -->
+                @if (Model.Date < DateTime.Now)
+                {
+                    <!-- Nút hiển thị khi sự kiện đã kết thúc -->
+                    <button class="btn btn-secondary w-100 fw-bold" disabled>Sự kiện đã kết thúc</button>
+                }
+                else
+                {
+                    <!-- Nút hiển thị khi sự kiện chưa kết thúc -->
+                    <a href="@Url.Action("Details", "Cart", new { id = Model.Id })" class="btn btn-success w-100 fw-bold">Mua vé ngay</a>
+                }
+            </div>
         </div>
     </div>
 </div>

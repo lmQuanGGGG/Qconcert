@@ -1,32 +1,123 @@
 ﻿@model IEnumerable<Qconcert.Models.Event>
 
 @{
-    ViewData["Title"] = "Search Results";
+    ViewData["Title"] = "Kết quả tìm kiếm";
 }
 
-<h2>Search Results</h2>
+<h4 class="mb-4">Kết quả tìm kiếm</h4>
 
-<div class="row">
-    @foreach (var eventItem in Model)
-    {
-        <div class="col-md-3 d-flex align-items-stretch">
-            <div class="card mb-3">
-                <a href="@Url.Action("Details", "Home", new { id = eventItem.Id })">
-                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(eventItem.Image16x9)" class="card-img-top" alt="@eventItem.Name" />
-                </a>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title" title="@eventItem.Name">@eventItem.Name</h5>
-                    <p class="card-text">@eventItem.Description</p>
-                </div>
-                <div class="card-footer">
-                    <p class="card-text"><small class="text-muted">@eventItem.Date.ToString("dd/MM/yyyy")</small></p>
-                    <div>
-                        <a href="@Url.Action("Edit", "Home", new { id = eventItem.Id })" class="btn btn-warning">Edit</a>
-                        <a href="@Url.Action("Delete", "Home", new { id = eventItem.Id })" class="btn btn-danger">Delete</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
+<!-- Nút mở modal bộ lọc -->
+<div class="mb-3">
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="bi bi-funnel-fill"></i> Bộ lọc
+    </button>
 </div>
 
+<!-- Kết quả sự kiện -->
+<div id="eventResults">
+    @await Html.PartialAsync("_EventListPartial", Model)
+</div>
+
+<!-- Modal bộ lọc -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Bộ lọc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <form id="filterForm">
+                    <div class="mb-3">
+                        <label for="categoryFilter" class="form-label">Thể loại</label>
+                        <select id="categoryFilter" name="category" class="form-select">
+                            <option value="">Tất cả</option>
+                            @foreach (var category in ViewBag.Categories)
+                            {
+                                <option value="@category.Name">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dateFilter" class="form-label">Ngày</label>
+                        <select id="dateFilter" name="dateFilter" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="today">Hôm nay</option>
+                            <option value="this-week">Tuần này</option> 
+                            <option value="custom">Khoảng ngày tùy chọn</option>
+                        </select>
+                    </div>
+
+                    <!-- Khoảng ngày tùy chọn -->
+                    <div class="mb-3 d-none" id="customDateRange">
+                        <label class="form-label">Khoảng ngày</label>
+                        <div class="input-group">
+                            <input type="date" id="startDate" class="form-control" />
+                            <span class="input-group-text">đến</span>
+                            <input type="date" id="endDate" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Vị trí</label>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="location" value="" checked> <label class="form-check-label">Toàn quốc</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="location" value="Hồ Chí Minh"> <label class="form-check-label">Hồ Chí Minh</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="location" value="Hà Nội"> <label class="form-check-label">Hà Nội</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="location" value="Đà Lạt"> <label class="form-check-label">Đà Lạt</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="location" value="Vị trí khác"> <label class="form-check-label">Vị trí khác</label></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="applyFilters" class="btn btn-outline-danger btn-sm" style="min-width: 80px;">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dateFilterSelect = document.getElementById("dateFilter");
+        const customDateRangeDiv = document.getElementById("customDateRange");
+
+        // Hiện/ẩn phần chọn khoảng ngày khi chọn "custom"
+        dateFilterSelect.addEventListener("change", function () {
+            if (this.value === "custom") {
+                customDateRangeDiv.classList.remove("d-none");
+            } else {
+                customDateRangeDiv.classList.add("d-none");
+            }
+        });
+
+        // Bắt sự kiện click nút Áp dụng
+        document.getElementById("applyFilters").addEventListener("click", function () {
+            const category = document.getElementById("categoryFilter").value;
+            const location = document.querySelector('input[name="location"]:checked').value;
+
+            let dateFilter = document.getElementById("dateFilter").value;
+            if (dateFilter === "custom") {
+                const start = document.getElementById("startDate").value;
+                const end = document.getElementById("endDate").value;
+                if (start && end) {
+                    dateFilter = `custom:${start},${end}`;
+                } else {
+                    alert("Vui lòng chọn đầy đủ khoảng ngày bắt đầu và kết thúc.");
+                    return;
+                }
+            }
+
+            const queryParams = new URLSearchParams({ category, dateFilter, location });
+
+            fetch(`/Home/SearchFiltered?${queryParams.toString()}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById("eventResults").innerHTML = html;
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+                    modal.hide();
+                })
+                .catch(error => console.error("Lỗi khi lọc:", error));
+        });
+    });
+</script>

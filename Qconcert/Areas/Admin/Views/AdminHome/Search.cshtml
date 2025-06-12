@@ -1,32 +1,88 @@
-﻿@model IEnumerable<Qconcert.Models.Event>
+﻿<!-- filepath: e:\WEB\Qconcert\Qconcert\Areas\Admin\Views\AdminHome\Search.cshtml -->
+@model IEnumerable<Qconcert.Models.Event>
 
 @{
-    ViewData["Title"] = "Search Results";
+    ViewData["Title"] = "Kết quả tìm kiếm";
 }
 
-<h2>Search Results</h2>
+<h2>Kết quả tìm kiếm</h2>
 
-<div class="row">
-    @foreach (var eventItem in Model)
-    {
-        <div class="col-md-3 d-flex align-items-stretch">
-            <div class="card mb-3">
-                <a href="@Url.Action("Details", "Home", new { id = eventItem.Id })">
-                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(eventItem.Image16x9)" class="card-img-top" alt="@eventItem.Name" />
-                </a>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title" title="@eventItem.Name">@eventItem.Name</h5>
-                    <p class="card-text">@eventItem.Description</p>
+<div class="row mb-4">
+    <!-- Bộ lọc -->
+    <div class="col-md-3">
+        <h5>Bộ lọc</h5>
+        <form id="filterForm">
+            <div class="mb-3">
+                <label for="categoryFilter" class="form-label">Thể loại</label>
+                <select id="categoryFilter" name="category" class="form-select">
+                    <option value="">Tất cả</option>
+                    @foreach (var category in ViewBag.Categories)
+                    {
+                        <option value="@category.Name">@category.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="dateFilter" class="form-label">Ngày</label>
+                <input type="date" id="dateFilter" name="date" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <h5>Vị trí</h5>
+                <div>
+                    <input type="radio" id="locationAll" name="location" value="" checked>
+                    <label for="locationAll">Toàn quốc</label>
                 </div>
-                <div class="card-footer">
-                    <p class="card-text"><small class="text-muted">@eventItem.Date.ToString("dd/MM/yyyy")</small></p>
-                    <div>
-                        <a href="@Url.Action("Edit", "Home", new { id = eventItem.Id })" class="btn btn-warning">Edit</a>
-                        <a href="@Url.Action("Delete", "Home", new { id = eventItem.Id })" class="btn btn-danger">Delete</a>
-                    </div>
+                <div>
+                    <input type="radio" id="locationHCM" name="location" value="Hồ Chí Minh">
+                    <label for="locationHCM">Hồ Chí Minh</label>
+                </div>
+                <div>
+                    <input type="radio" id="locationHN" name="location" value="Hà Nội">
+                    <label for="locationHN">Hà Nội</label>
+                </div>
+                <div>
+                    <input type="radio" id="locationDL" name="location" value="Đà Lạt">
+                    <label for="locationDL">Đà Lạt</label>
+                </div>
+                <div>
+                    <input type="radio" id="locationOther" name="location" value="Vị trí khác">
+                    <label for="locationOther">Vị trí khác</label>
                 </div>
             </div>
+            <button type="button" id="applyFilters" class="btn btn-primary">Áp dụng</button>
+        </form>
+    </div>
+
+    <!-- Kết quả sự kiện -->
+    <div class="col-md-9">
+        <div id="eventResults">
+            @await Html.PartialAsync("_EventListPartial", Model)
         </div>
-    }
+    </div>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const applyFiltersButton = document.getElementById("applyFilters");
+        const eventResultsContainer = document.getElementById("eventResults");
+
+        applyFiltersButton.addEventListener("click", function () {
+            const category = document.getElementById("categoryFilter").value;
+            const date = document.getElementById("dateFilter").value;
+            const location = document.querySelector('input[name="location"]:checked').value; // Lấy giá trị từ radio button
+
+            const queryParams = new URLSearchParams({
+                category: category,
+                date: date,
+                location: location
+            });
+
+            fetch(`/Home/SearchFiltered?${queryParams.toString()}`)
+                .then(response => response.text())
+                .then(html => {
+                    eventResultsContainer.innerHTML = html; // Cập nhật danh sách sự kiện
+                })
+                .catch(error => console.error("Error fetching filtered events:", error));
+        });
+    });
+</script>

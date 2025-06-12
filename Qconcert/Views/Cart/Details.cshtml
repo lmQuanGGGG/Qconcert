@@ -9,21 +9,33 @@
             </a>
 
             <h4 class="fw-bold text-success">Chọn vé</h4>
-            @foreach (var ticket in Model.Tickets)
-            {
-                <div class="card-3 mb-3 ">
-                    <div class="card-body">
-                        <h5 class="fw-bold text-success">@ticket.LoaiVe</h5>
-                        <p class="text-danger fw-bold">@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", ticket.Price)</p>
-                        <p>@Html.Raw(ticket.ThongTinVe)</p>
-                        <div class="d-flex align-items-center">
-                            <button class="btn btn-outline-secondary btn-sm me-2" onclick="updateQuantity(@ticket.Id, -1)">-</button>
-                            <input type="text" id="quantity-@ticket.Id" class="form-control text-center" value="0" style="width: 50px;" readonly />
-                            <button class="btn btn-outline-success btn-sm ms-2" onclick="updateQuantity(@ticket.Id, 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-            }
+@if (Model.Date < DateTime.Now)
+{
+    <div class="alert alert-danger text-center">
+        <strong>Sự kiện đã qua!</strong> Bạn không thể mua vé cho sự kiện này.
+    </div>
+}
+@foreach (var ticket in Model.Tickets)
+{
+    <div class="card-3 mb-3">
+        <div class="card-body">
+            <h5 class="fw-bold text-success">@ticket.LoaiVe</h5>
+            <p class="text-danger fw-bold">@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", ticket.Price)</p>
+            <p>@Html.Raw(ticket.ThongTinVe)</p>
+            <p class="text-muted">Số lượng còn lại: <span id="remaining-@ticket.Id">@ticket.SoLuongConLai</span></p>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-secondary btn-sm me-2" onclick="updateQuantity(@ticket.Id, -1)" 
+                        @(ticket.ThoiGianKetThucBanVe < DateTime.Now ? "disabled" : "")
+                            @(@Model.Date < DateTime.Now ? "disabled" : "")>-</button>
+                <input type="text" id="quantity-@ticket.Id" class="form-control text-center" value="0" style="width: 50px;" readonly />
+                <button class="btn btn-outline-success btn-sm ms-2" id="btn-plus-@ticket.Id" onclick="updateQuantity(@ticket.Id, 1)" 
+                        data-max="@ticket.SoVeToiDaTrongMotDonHang" @(ticket.ThoiGianKetThucBanVe < DateTime.Now ? "disabled" : "")
+                        @(Model.Date < DateTime.Now ? "disabled" : "")
+                        >+</button>
+            </div>
+        </div>
+    </div>
+}
         </div>
 
         <!-- Cột bên phải: Thông tin sự kiện và giỏ hàng -->
@@ -72,16 +84,41 @@
 <script>
     function updateQuantity(ticketId, change) {
         const quantityInput = document.getElementById(`quantity-${ticketId}`);
-        let currentQuantity = parseInt(quantityInput.value);
-        let newQuantity = Math.max(0, currentQuantity + change);
+        const remainingSpan = document.getElementById(`remaining-${ticketId}`);
+        const plusButton = document.getElementById(`btn-plus-${ticketId}`);
 
-        if (newQuantity === 0) {
-            removeFromCart(ticketId); // Nếu số lượng về 0 thì gọi API xóa vé
-        } else {
-            updateCart(ticketId, newQuantity); // Cập nhật số lượng mới
+        let currentQuantity = parseInt(quantityInput.value);
+        let remainingQuantity = parseInt(remainingSpan.textContent);
+        let maxQuantity = parseInt(plusButton.getAttribute('data-max')); // Lấy số vé tối đa từ thuộc tính data-max
+
+        // Tính toán số lượng mới
+        let newQuantity = currentQuantity + change;
+
+        // Kiểm tra nếu vượt quá số vé tối đa hoặc số lượng còn lại
+        if (newQuantity > maxQuantity || newQuantity > remainingQuantity) {
+            return;
         }
 
+        // Đảm bảo số lượng không âm
+        newQuantity = Math.max(0, newQuantity);
+
+        // Cập nhật số lượng mua và số lượng còn lại
         quantityInput.value = newQuantity;
+        remainingSpan.textContent = remainingQuantity - change;
+
+        // Disable nút "+" nếu đạt giới hạn
+        if (newQuantity >= maxQuantity || remainingQuantity - change <= 0) {
+            plusButton.disabled = true;
+        } else {
+            plusButton.disabled = false;
+        }
+
+        // Nếu số lượng mua là 0, gọi API xóa vé khỏi giỏ hàng
+        if (newQuantity === 0) {
+            removeFromCart(ticketId);
+        } else {
+            updateCart(ticketId, newQuantity);
+        }
     }
 
     function updateCart(ticketId, quantity) {

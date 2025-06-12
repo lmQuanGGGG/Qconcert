@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Duyệt sự kiện";
+    Layout = "_Layout";
 }
 
 <h2>Duyệt sự kiện</h2>
@@ -9,6 +10,10 @@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
 @if (!Model.Any())
@@ -31,12 +36,18 @@ else
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@item.Name</td>
+                    <td>
+                        <a href="/Admin/AdminHome/Details/@item.Id" class="text-decoration-none">
+                            @item.Name
+                        </a>
+                    </td>
                     <td>@item.Category?.Name</td>
                     <td>@item.Date.ToString("dd/MM/yyyy")</td>
                     <td>@item.OrganizerName</td>
                     <td>
-                        <form asp-area="Admin" asp-controller="AdminHome" asp-action="ApproveEvent" method="post" onsubmit="return confirm('Bạn có chắc muốn duyệt sự kiện này?');">
+                        <form action="/Admin/AdminHome/ApproveEvent" method="post"
+                              onsubmit="return confirm('Bạn có chắc muốn duyệt sự kiện này?');">
+                            @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@item.Id" />
                             <button type="submit" class="btn btn-success btn-sm">Duyệt</button>
                         </form>
@@ -45,8 +56,4 @@ else
             }
         </tbody>
     </table>
-}
-
-@{
-    Layout = "_Layout";
 }

@@ -13,17 +13,17 @@ namespace Qconcert.Controllers
         {
             _context = context;
         }
-
+        [Authorize]
         public IActionResult Checkout(int id, List<int> selectedTicketIds)
         {
             // Lấy thông tin sự kiện
             var @event = _context.Events
                 .Include(e => e.Tickets)
-                .FirstOrDefault(e => e.Id == id);
+                .FirstOrDefault(e => e.Id == id && e.IsApproved); // Chỉ lấy sự kiện đã duyệt
 
             if (@event == null)
             {
-                return NotFound();
+                return NotFound("Sự kiện không tồn tại hoặc chưa được duyệt.");
             }
 
             // Lấy danh sách vé đã chọn
@@ -53,7 +53,7 @@ namespace Qconcert.Controllers
 
             return View(order);
         }
-
+        [Authorize]
         public IActionResult CartDetails(int id)
         {
             return RedirectToAction("Details", "Cart", new { id });

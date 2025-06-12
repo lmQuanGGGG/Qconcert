@@ -17,6 +17,7 @@ public partial class TicketBoxDb1Context : IdentityDbContext
         : base(options)
     {
     }
+    public DbSet<PromotionPackage> PromotionPackages { get; set; }
 
     public virtual DbSet<Category> Categories { get; set; }
 
@@ -25,6 +26,7 @@ public partial class TicketBoxDb1Context : IdentityDbContext
     public DbSet<PaymentInfo> PaymentInfos { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -33,9 +35,16 @@ public partial class TicketBoxDb1Context : IdentityDbContext
         }
     }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        // Cấu hình quan hệ giữa Event và AspNetUsers
+        modelBuilder.Entity<Event>()
+            .HasOne(e => e.Creator) // Navigation property
+            .WithMany() // Không cần navigation property ngược trong IdentityUser
+            .HasForeignKey(e => e.CreatedBy) // Khóa ngoại
+            .HasPrincipalKey(u => u.Id); // Khóa chính trong AspNetUsers
 
         modelBuilder.Entity<IdentityUserLogin<string>>(entity =>
         {

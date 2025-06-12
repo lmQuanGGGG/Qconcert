@@ -1,35 +1,158 @@
-@model Qconcert.Models.Order
+@model Order
+@{
+    ViewData["Title"] = "Xác nhận thanh toán";
+}
 
 <div class="container mt-4">
-    <h2 class="fw-bold text-success">Xác nhận thanh toán</h2>
-    <p><strong>Sự kiện:</strong> @Model.EventId</p>
-    <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-    <p><strong>Email:</strong> @Model.Email</p>
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">Xác nhận thanh toán</h4>
+                    <h4 class="card-title text-center mb-4">*Lưu ý: không thoát khỏi trang thanh toán khi chưa nhận được mail xác nhận đặt vé thành công!!</h4>
+                    <div class="payment-info mb-4">
+                        <h5>Thông tin đơn hàng #@Model.Id</h5>
+                        <table class="table">
 
-    <h4 class="fw-bold mt-4">Chi tiết vé</h4>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Loại vé</th>
-                <th>Số lượng</th>
-                <th>Giá</th>
-                <th>Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var detail in Model.OrderDetails)
-            {
-                <tr>
-                    <td>@detail.Ticket.LoaiVe</td>
-                    <td>@detail.Quantity</td>
-                    <td>@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", detail.Price)</td>
-                    <td>@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", detail.Price * detail.Quantity)</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                            <tr>
+                                <th>Tổng tiền:</th>
+                                <td class="text-danger fw-bold">@Model.TotalAmount.ToString("N0") VNĐ</td>
+                            </tr>
+                            <tr>
+                                <th>Ngày đặt:</th>
+                                <td>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        </table>
+                    </div>
 
-    <h4 class="text-danger fw-bold">Tổng tiền: @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", Model.TotalAmount)</h4>
+                    <div class="ticket-info mb-4">
+                        <h5>Chi tiết vé đã đặt</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Loại vé</th>
+                                        <th>Số lượng</th>
+                                        <th>Giá vé</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detail in Model.OrderDetails)
+                                    {
+                                        <tr>
+                                            <td>@detail.Ticket.LoaiVe</td>
+                                            <td>@detail.Quantity</td>
+                                            <td>@detail.Price.ToString("N0") VNĐ</td>
+                                            <td>@(detail.Price * detail.Quantity) VNĐ</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-end">Tổng cộng:</th>
+                                        <th class="text-danger fw-bold">@Model.TotalAmount.ToString("N0") VNĐ</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
 
-    <a href="/" class="btn btn-primary">Quay về trang chủ</a>
+                    <div class="countdown-timer mb-4 text-center">
+                        <h5>Vui lòng hoàn tất thanh toán trong:</h5>
+                        <h3 id="timer" class="text-danger fw-bold"></h3>
+                    </div>
+
+                    <div class="payment-methods mb-4">
+                        <h5 class="mb-3">Chọn phương thức thanh toán</h5>
+
+                        <!-- PayOS Button -->
+                        <button type="button" class="btn btn-primary btn-lg w-100 mb-3 payos-button"
+                            data-order-id="@Model.Id">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Thanh toán qua PayOS
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Thời gian đếm ngược 
+            var countdownTime = 60; 
+
+            function startCountdown() {
+                var timerElement = document.getElementById('timer');
+                var interval = setInterval(function () {
+                    var minutes = Math.floor(countdownTime / 60);
+                    var seconds = countdownTime % 60;
+
+                    // Hiển thị thời gian còn lại
+                    timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                    // Giảm thời gian
+                    countdownTime--;
+
+                    // Khi hết thời gian
+                    if (countdownTime < 0) {
+                        clearInterval(interval);
+                        Swal.fire({
+                            title: 'Hết thời gian!',
+                            text: 'Thời gian giữ vé đã hết. Đơn hàng của bạn sẽ bị hủy.',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            // Chuyển hướng hoặc thực hiện hành động hủy đơn hàng
+                            window.location.href = `/Cart/Details/@Model.EventId`;
+                        });
+                    }
+                }, 1000);
+            }
+
+            // Bắt đầu đếm ngược
+            startCountdown();
+
+            // Xử lý các sự kiện khác (như đã có trong mã của bạn)
+            $('.payos-button').click(function () {
+                var orderId = $(this).data('order-id');
+                $(this).prop('disabled', true)
+                    .html('<span class="spinner-border spinner-border-sm"></span> Đang xử lý...');
+
+                $.ajax({
+                    url: '/Payment/CreatePayOSPayment',
+                    type: 'POST',
+                    data: { orderId: orderId },
+                    success: function (response) {
+                        if (response.success) {
+                            window.location.href = response.paymentUrl;
+                        } else {
+                            Swal.fire({
+                                title: 'Lỗi!',
+                                text: response.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                            $('.payos-button').prop('disabled', false)
+                                .html('<i class="fas fa-credit-card me-2"></i>Thanh toán qua PayOS');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            title: 'Lỗi!',
+                            text: 'Không thể kết nối đến cổng thanh toán',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                        $('.payos-button').prop('disabled', false)
+                            .html('<i class="fas fa-credit-card me-2"></i>Thanh toán qua PayOS');
+                    }
+                });
+            });
+        });
+    </script>
+}

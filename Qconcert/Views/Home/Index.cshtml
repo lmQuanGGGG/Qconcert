@@ -1,35 +1,291 @@
-﻿@model List<IGrouping<Qconcert.Models.Category, Qconcert.Models.Event>>
-
+﻿@model Qconcert.ViewModels.HomeIndexViewModel
 @{
     ViewData["Title"] = "Events";
 }
 
+<div class="container mt-5">
+    
 
-@foreach (var categoryGroup in Model)
-{
-    <div class="card mb-3">
-        <div class="card-header">
-            <h3>@categoryGroup.Key.Name</h3>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                @foreach (var eventItem in categoryGroup)
+    @if (Model.VipEvents != null && Model.VipEvents.Any())
+    {
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                @foreach (var vipEvent in Model.VipEvents)
                 {
-                    <div class="col-lg-3 col-md-6 col-sm-12 mb-2">
-                        <div class="card mb-3">
-                            <a href="@Url.Action("Details", "Home", new { id = eventItem.Id })">
-                                <img src="data:image/jpeg;base64,@Convert.ToBase64String(eventItem.Image16x9)" class="card-img-top" alt="@eventItem.Name" />
-                            </a>
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title" title="@eventItem.Name">@eventItem.Name</h5>
-                                <p class="card-text">@eventItem.Description</p>
-                                <p class="card-text"><small class="text-muted">@eventItem.Date.ToString("dd/MM/yyyy")</small></p>
+                    <div class="swiper-slide">
+                        <div class="card vip-slide-card p-0 border-0 bg-transparent">
+                            
+
+                            <div class="media-wrapper"
+                                 style="aspect-ratio: 16/9; width: 100%; border-radius: 8px; overflow: hidden; position: relative;">
+
+                                <img src="data:image/jpeg;base64,@Convert.ToBase64String(vipEvent.Event.Image16x9)"
+                                     class="media-img"
+                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: opacity 0.3s;" />
+
+                                <video class="media-video vip-video"
+                                       muted loop playsinline
+                                       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; opacity: 0; transition: opacity 0.3s;">
+                                    <source src="@vipEvent.MediaPath" type="video/mp4" />
+                                    Trình duyệt không hỗ trợ video.
+                                </video>
+                                <button class="btn btn-sm btn-light toggle-mute position-absolute"
+                                        style="bottom: 15px; right: 15px; z-index: 10;">
+                                    🔇
+                                </button>
+
                             </div>
+
+
+                            <a href="@Url.Action("Details", "Home", new { id = vipEvent.Event.Id })"
+                               class="btn btn-light btn-sm text-dark position-absolute custom-detail-btn"
+                               style="top: 15px; left: 15px; z-index: 10;">
+                                Xem chi tiết
+                            </a>
+
                         </div>
                     </div>
                 }
             </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-pagination"></div>
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="col-12 mt-4">
+            <div class="alert alert-info">
+                <h5>Quản lý sự kiện dễ dàng hơn với ứng dụng Qconcert Event Manager</h5>
+                <p>Tải ứng dụng trên điện thoại để quản lý sự kiện mọi lúc, mọi nơi.</p>
+            </div>
+        </div>
+    }
+
+
+    <!-- Hiển thị sự kiện Thường -->
+    
+    @if (Model.RegularEvents != null && Model.RegularEvents.Any())
+    {
+        <h5 class="mb-4 mt-4">Sự kiện đặc biệt</h5>
+        <div class="swiper mySwiperRegular">
+            <div class="swiper-wrapper">
+                @foreach (var regularEvent in Model.RegularEvents)
+                {
+                    <div class="swiper-slide">
+                        <div class="wang-card h-100">
+                            <a href="@Url.Action("Details", "Home", new { id = regularEvent.Event.Id })">
+                                <img src="@regularEvent.MediaPath" class="wang-image" alt="Hình ảnh sự kiện" />
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Các nút điều hướng -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-pagination"></div>
+        </div>
+    }
+
+
+
+    <!-- Hiển thị sự kiện theo loại -->
+    @foreach (var categoryGroup in Model.CategorizedEvents)
+    {
+        var category = categoryGroup.Key;
+        var topEvents = categoryGroup.OrderByDescending(e => e.Date)
+        .Take(4)
+        .ToList();
+
+        <section class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">@category.Name</h4>
+                <a href="@Url.Action("Search", "Home", new { category = category.Name })" class="btn btn-sm btn-outline-primary">Xem thêm</a>
+            </div>
+
+            
+                <div class="row">
+                    @foreach (var eventItem in topEvents)
+                    {
+                        var lowestPrice = eventItem.Tickets != null && eventItem.Tickets.Any() ? eventItem.Tickets.Min(t => t.Price) : 0;
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
+                            <div class="card h-100 position-relative">
+                                <a href="@Url.Action("Details", "Home", new { id = eventItem.Id })">
+                                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(eventItem.Image16x9)"
+                                         class="card-img-top" alt="@eventItem.Name" />
+                                    @if (eventItem.Date < DateTime.Now)
+                                    {
+                                        <div class="event-status position-absolute top-0 end-0 bg-danger text-white px-2 py-1">
+                                            Đã diễn ra
+                                        </div>
+                                    }
+                                </a>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">
+                                        <a href="@Url.Action("Details", "Home", new { id = eventItem.Id })" class="text-decoration-none text-dark">
+                                            @eventItem.Name
+                                        </a>
+                                    </h5>
+                                    <p class="card-text">@eventItem.Description</p>
+                                    <p class="card-text mt-auto mb-2">
+                                        <small class="text-muted">@eventItem.Date.ToString("dd/MM/yyyy")</small>
+                                    </p>
+                                    <p>
+                                        <a href="@Url.Action("Details", "Home", new { id = eventItem.Id })" class="text-danger text-decoration-none fw-bold">
+                                            Giá từ: @lowestPrice.ToString("N0") đ
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            
+        </section>
 }
+</div>
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const swiper = new Swiper(".mySwiper", {
+            loop: true,
+            slidesPerGroup: 1,
+            spaceBetween: 30,
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            breakpoints: {
+                0: {
+                    slidesPerView: 1
+                },
+                768: {
+                    slidesPerView: 2
+                }
+            },
+            on: {
+                init: function () {
+                    stopAllVideos();
+                    playVideoInSlide(this.slides[this.activeIndex]);
+                },
+                slideChange: function () {
+                    stopAllVideos();
+                    playVideoInSlide(this.slides[this.activeIndex]);
+                }
+            }
+        });
+
+        function stopAllVideos() {
+            document.querySelectorAll('.vip-video').forEach(v => {
+                v.pause();
+                v.currentTime = 0;
+                v.parentElement.querySelector('.media-img').style.opacity = 1;
+                v.style.opacity = 0;
+            });
+        }
+
+        function playVideoInSlide(slideEl) {
+            const v = slideEl.querySelector('.vip-video');
+            const img = slideEl.querySelector('.media-img');
+            if (v && img) {
+                v.currentTime = 0;
+                v.play().catch(() => {});
+                v.style.opacity = 1;
+                img.style.opacity = 0;
+            }
+        }
+
+        // Thêm sự kiện touchstart và touchend cho điện thoại
+        document.querySelectorAll('.media-wrapper').forEach(wrap => {
+            const v = wrap.querySelector('.vip-video');
+            const img = wrap.querySelector('.media-img');
+
+            // Trên điện thoại, sử dụng touchstart thay vì mouseenter
+            wrap.addEventListener('touchstart', () => {
+                v.currentTime = 0;
+                v.play().catch(() => {});
+                v.style.opacity = 1;
+                img.style.opacity = 0;
+            });
+
+            // Trên điện thoại, sử dụng touchend thay vì mouseleave
+            wrap.addEventListener('touchend', () => {
+                v.pause();
+                v.currentTime = 0;
+                v.style.opacity = 0;
+                img.style.opacity = 1;
+            });
+
+            // Máy tính vẫn giữ hover
+            wrap.addEventListener('mouseenter', () => {
+                v.currentTime = 0;
+                v.play().catch(() => {});
+                v.style.opacity = 1;
+                img.style.opacity = 0;
+            });
+
+            wrap.addEventListener('mouseleave', () => {
+                v.pause();
+                v.currentTime = 0;
+                v.style.opacity = 0;
+                img.style.opacity = 1;
+            });
+        });
+
+        // Điều khiển bật/tắt âm thanh khi click biểu tượng
+        document.querySelectorAll('.toggle-mute').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation(); // Không ảnh hưởng đến hover
+                const wrapper = this.closest('.media-wrapper');
+                const video = wrapper.querySelector('.vip-video');
+                if (video) {
+                    video.muted = !video.muted;
+                    this.textContent = video.muted ? '🔇' : '🔊';
+                }
+            });
+        });
+    });
+
+        document.addEventListener('DOMContentLoaded', function () {
+        const swiperRegular = new Swiper(".mySwiperRegular", {
+            loop: true,
+            slidesPerGroup: 1,
+            spaceBetween: 20,
+            slidesPerView: 4,  // Hiển thị 4 sự kiện
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            breakpoints: {
+                0: {
+                    slidesPerView: 1
+                },
+                576: {
+                    slidesPerView: 2
+                },
+                768: {
+                    slidesPerView: 3
+                },
+                1024: {
+                    slidesPerView: 4  // Hiển thị 4 sự kiện khi màn hình rộng
+                }
+            }
+        });
+    });
+
+</script>
+
 

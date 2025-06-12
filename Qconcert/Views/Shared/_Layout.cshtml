@@ -9,16 +9,66 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Qconcert.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-toggleable-lg navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="nav-linkie" asp-area="" asp-controller="Home" asp-action="Index">Qconcert</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <div class="container-fluid d-flex align-items-center justify-content-between">
+                @{
+                    string area = "";
+                    string controller = "Home";
+                    string action = "Index";
+
+                    if (User.IsInRole("Admin"))
+                    {
+                        area = "Admin";
+                        controller = "AdminHome";
+                    }
+                    else if (User.IsInRole("Employee"))
+                    {
+                        area = "Employee";
+                        controller = "Scan";
+                        action = "ScanQrCode";
+                    }
+                }
+                <a class="nav-linkie"
+                   asp-area="@area"
+                   asp-controller="@controller"
+                   asp-action="@action">
+                    Qconcert
+                </a>
+
+
+
+                <div class="d-flex align-items-center">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="notification-container d-flex align-items-center me-3">
+                            <button id="notificationIcon" class="position-relative">
+                                <i class="bi bi-bell-fill"></i>
+                                <span id="notificationCount" class="position-absolute top-0 start-100 translate-middle badge">
+                                    0
+                                </span>
+                            </button>
+                            <div id="notificationDropdown" class="dropdown-menu dropdown-menu-end p-3 shadow-sm" style="display: none; width: 300px;">
+                                <h6 class="dropdown-header">Thông báo</h6>
+                                <ul id="notificationList" class="list-unstyled mb-0">
+                                    <li class="text-muted">Không có thông báo nào.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
+
                 <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
 
@@ -26,29 +76,58 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Loại sự kiện</a>
+                                <a class="nav-link text-dark" asp-area="Admin" asp-controller="Category" asp-action="Index">Loại sự kiện</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="Admin" asp-controller="AdminHome" asp-action="PendingEvents">Duyệt sự kiện</a>
-
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="Admin" asp-controller="AdminHome" asp-action="EmployeeList">Quản Lý Nhân Viên</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/Event/Revenue" class="nav-link text-dark">Thống kê doanh thu</a> <!-- Thêm liên kết -->
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="Admin" asp-controller="EventAdmin" asp-action="PaymentReport">Báo cáo thanh toán</a>
                             </li>
                         }
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Create">Thêm sự kiện</a>
+                            @if (!User.IsInRole("Admin") && !User.IsInRole("Employee"))
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Create">Thêm sự kiện</a>
+                            }
+                        </li>
+
+                        <li class="nav-item">
+                            @if (!User.IsInRole("Admin") && !User.IsInRole("Employee"))
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Dashboard">Quản lý sự kiện</a>
+                            }
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Dashboard">Quản lý sự kiện</a>
+                            @if (!User.IsInRole("Admin") && !User.IsInRole("Employee"))
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="TicketHistory">Lịch sử vé</a>
+                            }
                         </li>
-
+                        @*
+                        @if (User.IsInRole("Employee"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Payment" asp-action="ScanQrCode">Quét QR</a>
+                            </li>
+                        }*@
                     </ul>
-                    <form class="d-flex search-form" asp-area="" asp-controller="Home" asp-action="Search" method="get">
-                        <input class="form-control search-input" type="search" name="query" placeholder="Tìm kiếm..." aria-label="Tìm">
-                        <button class="btn btn-success search-btn me-2" type="submit">Tìm</button>
-                    </form>
+                    @if (!User.IsInRole("Employee"))
+                    {
+                        <form class="d-flex search-form" asp-area="" asp-controller="Home" asp-action="Search" method="get">
+                            <input class="form-control search-input" type="search" name="query" placeholder="Tìm kiếm..." aria-label="Tìm">
+                            <button class="btn btn-success search-btn me-2" type="submit">Tìm</button>
+                        </form>
+                    }
 
-                    
-
+                   
                     <partial name="_LoginPartial" />
                 </div>
             </div>
@@ -62,12 +141,77 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Qconcert
+            &copy; 2025 - Qconcert - by Wang
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const notificationIcon = document.getElementById("notificationIcon");
+            const notificationDropdown = document.getElementById("notificationDropdown");
+            const notificationList = document.getElementById("notificationList");
+            const notificationCount = document.getElementById("notificationCount");
+
+            // Lấy thông báo từ server
+            fetch('/api/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    const unreadCount = data.filter(n => !n.isRead).length;
+                    notificationCount.textContent = unreadCount;
+
+                    notificationList.innerHTML = "";
+                    if (data.length === 0) {
+                        notificationList.innerHTML = "<li class='text-muted'>Không có thông báo nào.</li>";
+                    } else {
+                        data.forEach(notification => {
+                            const li = document.createElement("li");
+                            li.className = notification.isRead ? "text-muted" : "font-weight-bold";
+                            li.style.cursor = "pointer";
+
+                            // Chuyển đổi thời gian từ ISO 8601 sang định dạng dễ đọc
+                            const timestamp = new Date(notification.createdAt).toLocaleString();
+
+                            // Hiển thị thông báo và thời gian
+                            li.innerHTML = `
+                                <div>
+                                    <span>${notification.message}</span>
+                                    <br>
+                                    <small class="text-muted">${timestamp}</small>
+                                </div>
+                            `;
+
+                            li.addEventListener("click", function () {
+                                fetch(`/api/notifications/${notification.id}/mark-as-read`, { method: "POST" })
+                                    .then(() => {
+                                        notification.isRead = true;
+                                        li.className = "text-muted";
+                                        const unreadCount = data.filter(n => !n.isRead).length;
+                                        notificationCount.textContent = unreadCount;
+                                    });
+                            });
+
+                            notificationList.appendChild(li);
+                        });
+                    }
+                });
+
+            // Hiển thị/ẩn dropdown thông báo
+            notificationIcon.addEventListener("click", function () {
+                const isVisible = notificationDropdown.style.display === "block";
+                notificationDropdown.style.display = isVisible ? "none" : "block";
+            });
+
+            // Đóng dropdown khi nhấn bên ngoài
+            document.addEventListener("click", function (event) {
+                if (!notificationIcon.contains(event.target) && !notificationDropdown.contains(event.target)) {
+                    notificationDropdown.style.display = "none";
+                }
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

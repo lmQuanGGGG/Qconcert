@@ -1,0 +1,91 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+
+@{
+    ViewData["Title"] = "Danh Sách Nhân Viên";
+    Layout = "_Layout";
+}
+
+<h2 class="mt-4">@ViewData["Title"]</h2>
+
+<!-- Form tìm kiếm -->
+<div class="mb-3">
+    <div class="input-group">
+        <input type="text" id="employeeSearchInput" class="form-control" placeholder="🔍 Nhập email nhân viên..." onkeyup="filterEmployeeTable()" />
+        <button class="btn btn-outline-danger" type="button" onclick="document.getElementById('employeeSearchInput').value=''; filterEmployeeTable();">Xóa</button>
+    </div>
+</div>
+
+<!-- Bảng responsive -->
+<div class="table-responsive">
+    <table id="employeeTable" class="table table-bordered table-hover align-middle text-center">
+        <thead>
+            <tr>
+                <th scope="col">Email</th>
+                <th scope="col">Trạng Thái</th>
+                <th scope="col">Hành Động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model)
+            {
+                <tr>
+                    <td>@employee.Email</td>
+                    <td>
+                        @(employee.LockoutEnd.HasValue && employee.LockoutEnd > DateTimeOffset.UtcNow
+                            ? "Đã Vô Hiệu Hóa"
+                            : "Hoạt Động")
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center flex-wrap gap-2">
+                            <form asp-action="DeleteEmployee" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');">
+                                <input type="hidden" name="id" value="@employee.Id" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm" style="min-width: 80px;">Xóa</button>
+                            </form>
+                            @if (employee.LockoutEnd.HasValue && employee.LockoutEnd > DateTimeOffset.UtcNow)
+                            {
+                                <form asp-action="EnableEmployee" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn mở khóa tài khoản này?');">
+                                    <input type="hidden" name="id" value="@employee.Id" />
+                                    <button type="submit" class="btn btn-outline-success btn-sm" style="min-width: 80px;">Mở</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="DisableEmployee" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này?');">
+                                    <input type="hidden" name="id" value="@employee.Id" />
+                                    <button type="submit" class="btn btn-outline-warning btn-sm" style="min-width: 80px;">Khóa</button>
+                                </form>
+                            }
+                        </div>
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function filterEmployeeTable() {
+            var input = document.getElementById("employeeSearchInput");
+            var filter = input.value.toLowerCase();
+            var table = document.getElementById("employeeTable");
+            var trs = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < trs.length; i++) {
+                var td = trs[i].getElementsByTagName("td")[0]; // Cột email
+                if (td) {
+                    var txtValue = td.textContent || td.innerText;
+                    trs[i].style.display = txtValue.toLowerCase().includes(filter) ? "" : "none";
+                }
+            }
+        }
+
+        // Auto dark/light theme
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+        }
+    </script>
+}

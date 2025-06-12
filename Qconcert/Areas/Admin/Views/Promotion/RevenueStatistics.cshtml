@@ -1,0 +1,67 @@
+﻿@model Qconcert.ViewModels.RevenueStatisticsViewModel
+
+<div class="container mt-5">
+    <h2 class="mb-4">Thống Kê Doanh Thu Quảng Cáo</h2>
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form method="get" action="@Url.Action("RevenueStatistics", "Promotion")">
+                <label for="period">Chọn khoảng thời gian:</label>
+                @Html.DropDownList("period", new SelectList(new[] {
+                new { Value = "day", Text = "Hôm nay" },
+                new { Value = "week", Text = "Tuần này" },
+                new { Value = "month", Text = "Tháng này" },
+                new { Value = "quarter", Text = "Quý này" },
+                new { Value = "year", Text = "Năm nay" }
+                }, "Value", "Text", Model.Period), new { @class = "form-select w-auto d-inline-block", id = "period" })
+                <button type="submit" class="btn btn-primary">Xem thống kê</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-header bg-primary text-white">
+                    <h4>Doanh Thu VIP</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-success">
+                        @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", Model.VipRevenue)
+                    </h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-header bg-info text-white">
+                    <h4>Doanh Thu Thường</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-success">
+                        @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", Model.NormalRevenue)
+                    </h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-header bg-success text-white">
+                    <h4>Tổng Doanh Thu</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-success">
+                        @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", Model.TotalRevenue)
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12 text-center">
+            <p>Thống kê từ <strong>@Model.StartDate.ToString("dd/MM/yyyy")</strong> đến <strong>@Model.EndDate.ToString("dd/MM/yyyy")</strong>.</p>
+        </div>
+    </div>
+</div>

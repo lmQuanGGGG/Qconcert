@@ -128,13 +128,16 @@ namespace Qconcert.Areas.Identity.Pages.Account
             }
             Input = new()
             {
-                RoleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
-                {
-                    Text = i,
-                    Value = i
-                })
+                RoleList = _roleManager.Roles
+        .Where(x => x.Name != SD.Role_Admin) // Bỏ quyền Admin
+        .Select(i => new SelectListItem
+        {
+            Text = i.Name,
+            Value = i.Name
+        })
             };
-                ReturnUrl = returnUrl;
+
+            ReturnUrl = returnUrl;
                 ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 

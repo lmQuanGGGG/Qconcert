@@ -6,9 +6,11 @@ namespace Qconcert.Models
     {
         public int Id { get; set; } // Mã vé
         public int EventId { get; set; } // Mã sự kiện
+        public Event Event { get; set; }
         [Required(ErrorMessage = "Tổng số vé là bắt buộc.")]
         [Range(1, int.MaxValue, ErrorMessage = "Tổng số vé phải lớn hơn 0.")]
         public int SoLuongGhe { get; set; } // Tổng số lượng vé
+        public int SoLuongConLai { get; set; } // Số lượng vé còn lại
         [Required(ErrorMessage = "Số vé tối thiểu là bắt buộc.")]
         [Range(1, int.MaxValue, ErrorMessage = "Số vé tối thiểu phải lớn hơn 0.")]
         public int SoVeToiThieuTrongMotDonHang { get; set; } // Số vé tối thiểu trong một đơn hàng
@@ -31,5 +33,7 @@ namespace Qconcert.Models
         public string LoaiVe { get; set; } = null!; // Loại vé
 
         public DateTime? CreatedAt { get; set; }
+        // Quan hệ với OrderDetails
+        public ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }

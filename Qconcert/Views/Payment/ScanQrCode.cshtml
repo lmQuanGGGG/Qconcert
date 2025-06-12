@@ -1,0 +1,54 @@
+@{
+    ViewData["Title"] = "Quét mã QR";
+}
+
+<h3>Quét mã QR</h3>
+<div style="margin-bottom: 15px;">
+    <label for="cameraSelect">Chọn camera:</label>
+    <select id="cameraSelect" style="width: 100%; padding: 8px; border-radius: 6px; margin-top: 5px;"></select>
+</div>
+
+<!-- Trạng thái hiển thị tại đây để dễ thấy -->
+<p id="scanResult"
+   style="text-align: center; margin-bottom: 15px; font-weight: 500; color: #00ffcc;">
+    Đang chờ quét mã QR...
+</p>
+
+<!-- Khung quét phía dưới -->
+<div id="reader"
+     style="width: 100%; max-width: 400px; aspect-ratio: 3 / 4;
+            border: 2px solid #ccc; border-radius: 12px; margin: auto;">
+</div>
+
+
+
+<script src="/js/html5-qrcode.min.js"></script>
+<script src="/js/qr-scanner.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        startQrScanner({
+            invokeMethodAsync: function (methodName, result) {
+                if (methodName === "OnQrCodeScanned") {
+                    document.getElementById("scanResult").innerText = "Kết quả: " + result;
+
+                    // Gửi mã QR đến API để xác thực
+                    fetch('/api/verify-qr-code', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ QrCodeText: result })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById("scanResult").innerText = data.message;
+                    })
+                    .catch(error => {
+                        document.getElementById("scanResult").innerText = "Lỗi xác thực mã QR.";
+                        console.error("Error:", error);
+                    });
+                }
+            }
+        });
+    });
+</script>

@@ -1,0 +1,108 @@
+@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Báo Cáo Thanh Toán";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid my-4">
+    <div class="row align-items-center mb-4">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6 col-sm-12">
+                <h2 class="m-0 text-truncate">@ViewData["Title"]</h2>
+            </div>
+            <div class="col-md-6 col-sm-12 d-flex justify-content-end mt-2 mt-md-0">
+                <input type="text" id="searchInput" class="form-control w-100 w-sm-75 w-md-50" placeholder="🔍 Tìm tên sự kiện..." onkeyup="filterTable()" />
+            </div>
+        </div>
+
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success text-center">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+
+    <!-- Bảng báo cáo -->
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table id="eventTable" class="table table-bordered table-hover align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>Tên Sự Kiện</th>
+                            <th>Ngày Tổ Chức</th>
+                            <th>Nhà Tổ Chức</th>
+                            <th>Doanh Thu</th>
+                            <th>Thanh Toán (90%)</th>
+                            <th>Chủ TK</th>
+                            <th>Số TK</th>
+                            <th>Ngân Hàng</th>
+                            <th>Chi Nhánh</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model)
+                        {
+                            <tr>
+                                <td>@e.Name</td>
+                                <td>@e.Date.ToString("dd/MM/yyyy")</td>
+                                <td>@e.OrganizerName</td>
+                                <td>@e.TotalRevenue.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                <td>@e.PaymentDue.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                <td>@e.AccountHolder</td>
+                                <td>@e.AccountNumber</td>
+                                <td>@e.BankName</td>
+                                <td>@e.Branch</td>
+                                <td>
+                                    <form asp-action="MarkAsPaid" method="post" class="mb-1" onsubmit="return confirmPayment();">
+                                        <input type="hidden" name="eventId" value="@e.Id" />
+                                        <button type="submit" class="btn btn-outline-warning btn-sm w-100 mb-1">✔️ Xác Nhận</button>
+                                    </form>
+                                    <form asp-action="ExportPaymentReportToPdf" method="post">
+                                        <input type="hidden" name="eventId" value="@e.Id" />
+                                        <button type="submit" class="btn btn-outline-warning btn-sm w-100">📄 Xuất PDF</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmPayment() {
+            return confirm("Bạn có chắc chắn muốn xác nhận thanh toán cho sự kiện này?");
+        }
+
+        function filterTable() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toLowerCase();
+            var table = document.getElementById("eventTable");
+            var trs = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < trs.length; i++) {
+                var td = trs[i].getElementsByTagName("td")[0];
+                if (td) {
+                    var txtValue = td.textContent || td.innerText;
+                    trs[i].style.display = txtValue.toLowerCase().includes(filter) ? "" : "none";
+                }
+            }
+        }
+
+        // Tự động nhận diện dark mode
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+        }
+    </script>
+}

@@ -35,11 +35,17 @@ html {
     flex-wrap: wrap;
 }
 
+.navbar .container-fluid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
     /* Link trong navbar */
     .navbar a {
-        color: #FFFFFF; /* Màu vàng sáng nổi bật */
-        font-size: 1.0rem; /* Chữ to hơn */
-        font-weight: bold;
+        color: #FFFFFF; 
+        font-size: 1.0rem; 
+        
         text-decoration: none;
         padding: 12px 18px; /* Nút to hơn một chút */
         transition: all 0.3s ease-in-out;
@@ -65,7 +71,7 @@ html {
     padding: 10px 16px;
     transition: all 0.3s ease-in-out;
 }
-}
+
 
 
 
@@ -142,7 +148,7 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease-in-out;
     width: 100%;
-    min-height: 350px;
+    min-height: auto;
     display: flex;
     flex-direction: column;
 }
@@ -241,6 +247,9 @@ td, th {
         padding: 10px;
     }
 
+    .notification-container {
+        margin-right: 10px; /* Tạo khoảng cách giữa biểu tượng thông báo và nút menu */
+    }
 }
 
 
@@ -386,7 +395,7 @@ td, th {
 
 .nav-link.text-dark {
     color: white !important; /* Chữ màu trắng */
-    font-weight: bold; /* Chữ đậm */
+    /* Chữ đậm */
 
     align-items: center; /* Căn giữa theo chiều dọc */
 
@@ -396,11 +405,10 @@ td, th {
 .nav-linkie {
     color: #39ff14; /* Xanh neon */
     font-weight: bold; /* Chữ đậm */
-    font-size: 20px; /* Tăng kích thước chữ */
-   
+    /* Tăng kích thước chữ */
+    font-size: 20px;
     display: flex;
     align-items: center; /* Căn giữa theo chiều dọc */
- 
 }
 .event-container {
     display: flex;
@@ -456,6 +464,14 @@ td, th {
 }
 
 
+    .event-status {
+        font-size: 0.9rem;
+        font-weight: bold;
+        border-radius: 0.25rem;
+        z-index: 10;
+    }
+
+
 .event-description img {
     max-width: 100%; /* Không cho ảnh vượt quá khung */
     height: auto; /* Giữ nguyên tỷ lệ ảnh */
@@ -464,5 +480,346 @@ td, th {
     border-radius: 8px; /* Bo góc ảnh nếu cần */
     object-fit: contain;
     margin: 5px auto; /* Giảm khoảng cách trên dưới ảnh */
+}
+
+/* Payment Styles */
+.payment-info {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 2rem;
+}
+
+.bank-info {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+
+.bank-info p {
+    margin-bottom: 0.5rem;
+}
+
+#qrCode img {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    padding: 12px 24px;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-1px);
+    transition: all 0.2s;
+}
+/* Tự đổi màu chữ theo chế độ nền */
+.table th, .table td {
+    color: black; /* Mặc định sáng */
+}
+
+@media (prefers-color-scheme: dark) {
+    .table th, .table td {
+        color: white !important;
+    }
+}
+
+.btn-transparent {
+    background-color: transparent; /* Nền trong suốt */
+    border: none; /* Loại bỏ viền */
+    color: #007bff; /* Màu chữ (có thể thay đổi) */
+    font-size: 1.2rem; /* Kích thước biểu tượng */
+    padding: 0.5rem; /* Khoảng cách bên trong */
+    cursor: pointer; /* Con trỏ chuột */
+}
+
+.btn-transparent:hover {
+    color: #0056b3; /* Màu khi hover */
+}
+
+
+.notification-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.notification-container .dropdown-menu {
+    max-height: 300px; /* Giới hạn chiều cao dropdown */
+    overflow-y: auto; /* Thêm thanh cuộn nếu nội dung quá dài */
+}
+
+@media (max-width: 576px) {
+    .notification-container {
+        width: 100%; /* Đảm bảo icon thông báo chiếm toàn bộ chiều rộng trên màn hình nhỏ */
+        justify-content: center;
+    }
+
+    .notification-container .dropdown-menu {
+        width: 90%; /* Đảm bảo dropdown chiếm 90% chiều rộng màn hình */
+        left: 5%; /* Căn giữa dropdown */
+        right: auto;
+    }
+}
+
+/* Vị trí mặc định cho màn hình lớn */
+#notificationDropdown {
+    position: absolute;
+    top: 100%; /* Hiển thị ngay bên dưới biểu tượng thông báo */
+    left: 0; /* Căn trái khi màn hình lớn */
+    right: auto; /* Vô hiệu hóa căn phải */
+    z-index: 1050;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+}
+
+/* Điều chỉnh vị trí khi màn hình nhỏ */
+@media (max-width: 768px) {
+    #notificationDropdown {
+        right: 0; /* Căn phải khi màn hình nhỏ */
+        left: auto; /* Vô hiệu hóa căn trái */
+    }
+}
+
+#notificationDropdown ul {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#notificationDropdown li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ddd;
+}
+
+    #notificationDropdown li:last-child {
+        border-bottom: none;
+    }
+
+.notification-container button#notificationIcon {
+    background-color: transparent; /* Nền trong suốt */
+    border: none; /* Loại bỏ viền */
+    padding: 0; /* Loại bỏ khoảng cách thừa */
+    cursor: pointer; /* Con trỏ chuột */
+    position: relative;
+}
+
+.notification-container button#notificationIcon i {
+    font-size: 1.5rem; /* Tăng kích thước icon */
+    color: #007bff; /* Màu xanh cho icon */
+    transition: color 0.3s ease; /* Hiệu ứng chuyển màu */
+}
+
+.notification-container button#notificationIcon:hover i {
+    color: #0056b3; /* Màu khi hover */
+}
+
+.notification-container .badge {
+    font-size: 0.8rem; /* Kích thước nhỏ hơn cho badge */
+    font-weight: bold;
+    background-color: #dc3545; /* Màu đỏ cho badge */
+    color: white; /* Màu chữ trắng */
+    border-radius: 50%; /* Làm badge tròn */
+    padding: 0.3rem 0.5rem;
+}
+
+.notification-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+
+#revenueChart {
+    max-height: 300px;
+    height: auto;
+}
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+
+
+
+body {
+    background-color: white;
+    color: black;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: white;
+    }
+
+    .modal-content {
+        background-color: #1e1e1e;
+        color: white;
+    }
+
+    .form-control, .form-select {
+        background-color: #2a2a2a;
+        color: white;
+        border-color: #444;
+    }
+
+    .form-check-label {
+        color: white;
+    }
+
+    .btn-close {
+        filter: invert(1);
+    }
+}
+
+
+
+.media-wrapper:hover .media-img {
+    opacity: 0;
+}
+
+.media-wrapper:hover .media-video {
+    opacity: 1;
+}
+
+
+.swiper-slide {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+}
+
+
+
+
+/* Đảm bảo swiper-slide full height */
+.swiper-slide {
+    height: auto !important;
+}
+
+/* Sửa vip-slide-card */
+.vip-slide-card {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+}
+
+.custom-detail-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .custom-detail-btn {
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .custom-detail-btn {
+        padding: 1px 4px;
+        font-size: 9px;
+    }
+}
+/* Lớp CSS mới cho việc hiển thị ảnh với tỷ lệ 3:4 */
+/* Lớp CSS cho ảnh trong sự kiện thường */
+.wang-image {
+    width: 100%; /* Chiều rộng ảnh chiếm hết chiều rộng của phần chứa */
+    height: auto; /* Chiều cao tự động */
+    aspect-ratio: 3 / 4; /* Đặt tỷ lệ ảnh là 3:4 */
+    object-fit: cover; /* Đảm bảo ảnh sẽ lấp đầy không gian mà không bị méo */
+    border-radius: 10px; /* Thêm bo góc cho ảnh */
+}
+
+/* Đảm bảo lớp swiper có đủ chiều rộng */
+.mySwiperRegular .swiper-slide {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    border-radius: 10px; /* Thêm bo góc cho swiper slide */
+    overflow: hidden; /* Ẩn phần nào đó vượt ra ngoài khi bo góc */
+}
+
+.mySwiperRegular .swiper-wrapper {
+    display: flex;
+}
+
+/* Nếu cần bo góc cho wrapper chứa ảnh */
+.mySwiperRegular .swiper-slide img {
+    border-radius: 10px; /* Thêm bo góc cho ảnh trong swiper */
+}
+.wang-card {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.wang-card:hover,
+.wang-card:focus-within {
+    transform: scale(1.03);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Pseudo-element tạo viền chạy */
+.wang-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 14px;
+    background: linear-gradient(270deg, #ff416c, #ff4b2b, #ff416c);
+    background-size: 600% 600%;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: borderRun 4s linear infinite;
+}
+
+/* Chỉ hiện viền khi hover/focus */
+.wang-card:hover::before,
+.wang-card:focus-within::before {
+    opacity: 1;
+}
+
+/* Để lớp ảnh nội dung hiển thị trên viền */
+.wang-card > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* Ảnh bên trong */
+.wang-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.wang-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Keyframes animation cho hiệu ứng viền chuyển động */
+@keyframes borderRun {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 

@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
+    <PackageReference Include="Hangfire.Core" Version="1.8.18" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.18" />
+    <PackageReference Include="itext7" Version="7.1.15" />
     <PackageReference Include="iTextSharp" Version="5.5.13.4" />
     <PackageReference Include="MailKit" Version="4.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="8.0.0" />
@@ -25,12 +29,19 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
-    <PackageReference Include="QRCoder" Version="1.6.0" />
+    <PackageReference Include="MimeKit" Version="4.11.0" />
+    <PackageReference Include="payOS" Version="1.0.9" />
+    <PackageReference Include="QRCoder" Version="1.4.1" />
+    <PackageReference Include="QuestPDF" Version="2025.4.3" />
+    <PackageReference Include="Rotativa.AspNetCore" Version="1.2.0" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Areas\Employee\Models\" />
     <Folder Include="Views\Event\" />
+    <Folder Include="Views\VietQR\" />
+    <Folder Include="wwwroot\fonts\" />
   </ItemGroup>
 
 </Project>
